@@ -17,6 +17,12 @@ server_app::server_app ( const server_type s_type,
 }
 
 server_app::~server_app() {
+   for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
+      if (it->second) {
+         delete it->second;
+         p_server_map.erase(it);
+      }
+   }
 }
 
 void server_app::start (){
@@ -40,8 +46,12 @@ void server_app::start (){
 	    * check if a request is decoded
 	    */
 	    std::thread thread_l2(&server_app::thread_server_reply, this);
-            thread_l2.join();
+
+            /**
+               block current theread until the threads below finishes
+            */ 
 	    thread_l1.join();
+            thread_l2.join();
         }
     }
     catch(const client_exception& e) {
@@ -99,14 +109,15 @@ void server_app::thread_server_reply () {
    char l_message[MESSAGE_MAX_SIZE];
    int fd_l;
 
+   std::lock_guard<std::mutex> lock(p_handle_request_mutex);
    /**
      handle one request 
    */
    for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
       it->second->process();
       fd_l = it->first;
-      p_server_map.erase(it);
       delete it->second;
+      p_server_map.erase(it);
       break;
    }
 
@@ -129,4 +140,3 @@ void server_app::thread_server_reply () {
     **/
    p_srv->fd_close();
 }
-
