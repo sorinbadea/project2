@@ -18,10 +18,9 @@ server_app::server_app ( const server_type s_type,
 
 server_app::~server_app() {
    for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
-      if (it->second) {
-         delete it->second;
-         p_server_map.erase(it);
-      }
+       delete it->second;
+       p_srv->fd_close(it->first);
+       p_server_map.erase(it);
    }
 }
 
@@ -120,29 +119,27 @@ void server_app::thread_server_reply () {
    #endif
 
    for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
-      it->second->process();
-      fd_l = it->first;
-      /** free  worker instance */
-      delete it->second;
-   }
+       it->second->process();
+       fd_l = it->first;
+       /** free  worker instance */
+       delete it->second;
 
-   /* perform a "TEST" and reply */
-   strcpy(message_l, "Bau");
-   /**
-    * ensure a NON BLOCKING write operation
-    */
-   if (fcntl(fd_l, F_SETFL, O_NONBLOCK) < 0) {
-       throw client_exception("Exception, cannot set NONBLOCK on socket fd");
-   }
+       /* perform a "TEST" and reply */
+       strcpy(message_l, "Bau");
+       /**
+        * ensure a NON BLOCKING write operation
+        */
+       if (fcntl(fd_l, F_SETFL, O_NONBLOCK) < 0) {
+           throw client_exception("Exception, cannot set NONBLOCK on socket fd");
+       }
 
-   ssize_t written_l = write(fd_l, (void*)message_l, 4);
-   if (written_l < 0) {
-       throw client_exception("Exception, cannot write the required nb of bytes");
-   }
+       ssize_t written_l = write(fd_l, (void*)message_l, 4);
+       if (written_l < 0) {
+           throw client_exception("Exception, cannot write the required nb of bytes");
+       }
    
-   for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
-      /** free file descriptor */
-      p_srv->fd_close(it->first);
-      p_server_map.erase(it);
+       /** free file descriptor */
+       p_srv->fd_close(fd_l);
+       p_server_map.erase(it);
    }
 }
