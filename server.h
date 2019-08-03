@@ -65,7 +65,7 @@ public:
     * for TCP servers:
     * close the fd provided by accept
     * for UDP serveres: nothing */
-   virtual void fd_close() = 0;
+   virtual void fd_close(int) = 0;
 
 
    /** 
@@ -100,7 +100,7 @@ public:
 
    int server_wait();
 
-   void fd_close();
+   void fd_close(int);
 };
 
 
@@ -130,7 +130,7 @@ public:
 
    int server_wait();
 
-   void fd_close();
+   void fd_close(int);
 };
 
 #endif

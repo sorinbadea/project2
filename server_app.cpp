@@ -43,13 +43,13 @@ void server_app::start (){
 	    std::thread thread_l1(&server_app::handle_request, this, fd_l);
 
 	    /**
-	    * check if a request is decoded
-	    */
+	     * request decoding
+	     */
 	    std::thread thread_l2(&server_app::thread_server_reply, this);
 
             /**
-               block current theread until the threads below finishes
-            */ 
+             * block current thread until the threads below finishes
+             */ 
 	    thread_l1.join();
             thread_l2.join();
         }
@@ -91,13 +91,15 @@ void server_app::handle_request(int fd) {
        worker_l = new test_worker(p_msg_test->test_id, p_msg_test->items, p_msg_test->threshold);
 
        /**
-          store a pair fd, worker instance
+          store a pair: <fd, worker instance>
        */
        if (p_server_map.find(fd) == p_server_map.end()) {
            p_server_map.insert(std::make_pair(fd, worker_l));
        }
        else {
-           std::cout << "server_app, fd already exists!" << std::endl;
+           #ifdef CLS_DEBUG
+               std::cout << "server_app, fd already exists!" << std::endl;
+           #endif
        }
        delete []p_message;
     }
@@ -106,37 +108,41 @@ void server_app::handle_request(int fd) {
 
 void server_app::thread_server_reply () {
 
-   char l_message[MESSAGE_MAX_SIZE];
+   char message_l[MESSAGE_MAX_SIZE];
    int fd_l;
 
    std::lock_guard<std::mutex> lock(p_handle_request_mutex);
    /**
-     handle one request 
-   */
+    * handle request 
+    */
+   #ifdef CLS_DEBUG
+       std::cout << "server_app, size of map:" << p_server_map.size() << std::endl;
+   #endif
+
    for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
       it->second->process();
       fd_l = it->first;
+      /** free  worker instance */
       delete it->second;
-      p_server_map.erase(it);
-      break;
    }
 
    /* perform a "TEST" and reply */
-   strcpy(l_message, "Bau");
+   strcpy(message_l, "Bau");
    /**
     * ensure a NON BLOCKING write operation
     */
-   if ( fcntl(fd_l, F_SETFL, O_NONBLOCK) < 0 ) {
-         throw client_exception("Exception, cannot set NONBLOCK on socket fd");
+   if (fcntl(fd_l, F_SETFL, O_NONBLOCK) < 0) {
+       throw client_exception("Exception, cannot set NONBLOCK on socket fd");
    }
 
-   ssize_t written_l = write(fd_l, (void*)l_message, 4);
+   ssize_t written_l = write(fd_l, (void*)message_l, 4);
    if (written_l < 0) {
        throw client_exception("Exception, cannot write the required nb of bytes");
    }
-
-   /*
-    * close the used fd 
-    **/
-   p_srv->fd_close();
+   
+   for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
+      /** free file descriptor */
+      p_srv->fd_close(it->first);
+      p_server_map.erase(it);
+   }
 }

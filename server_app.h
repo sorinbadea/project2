@@ -27,6 +27,9 @@ class server_app {
     **/
    std::map<int, worker*> p_server_map;
 
+   /**
+    * mutexe for request and reply threads 
+    */
    std::mutex p_handle_request_mutex;
 
    /**

@@ -71,8 +71,8 @@ int server_tcp::server_wait() {
     return p_a_sockfd;
 }
 
-void server_tcp::fd_close() {
-    close(p_a_sockfd);
+void server_tcp::fd_close(int fd) {
+    close(fd);
 }
 
 server_tcp::~server_tcp() {
@@ -121,7 +121,7 @@ int server_udp::server_wait() {
     return 0;
 }
 
-void server_udp::fd_close() {
+void server_udp::fd_close(int fd) {
 }
 
 server_udp::~server_udp() {
