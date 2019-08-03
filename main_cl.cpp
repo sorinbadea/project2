@@ -3,7 +3,7 @@
 
 int main() {
 
-    int loops = 3;
+    int loops = 16;
     client_app a;
     while( loops-- ) {
        a.request_test();

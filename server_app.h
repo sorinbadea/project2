@@ -4,6 +4,7 @@
 #include "worker.h"
 #include "messages.h"
 #include <vector>
+#include <map>
 
 class server;
 class server_tcp;
@@ -19,19 +20,14 @@ class server_app {
    unsigned char* p_header;
    unsigned char* p_message;
 
-   std::mutex p_handle_request_mutex;
-
    /**
-    * pointer to a worker instance
-    * each worker are dedicated to a speciffic request:
-    * test request, registration request, connection request
+    * map <file descriptor, pointer to a worker instance>
+    * each worker are dedicated to a specific request:
+    * (test request, registration request, connection request)
     **/
-   worker* p_worker;
+   std::map<int, worker*> p_server_map;
 
-   /**
-    * file descriptor to reply at
-    */
-   int p_fd;
+   std::mutex p_handle_request_mutex;
 
    /**
     * execute and reply the result to server

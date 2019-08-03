@@ -1,6 +1,11 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
+#define MESSAGE_MAX_SIZE 1024
+#define PORT 8080 
+#define SA struct sockaddr
+#define QUEUE_SIZE 4
+
 enum class message_ids {
    TEST=1,
    REGISTRATION,

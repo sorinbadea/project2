@@ -1,4 +1,5 @@
 #include "server_app.h"
+#include "exception.hpp"
 
 server_app::server_app ( const server_type s_type, 
                          const unsigned int port, 
@@ -16,42 +17,32 @@ server_app::server_app ( const server_type s_type,
 }
 
 server_app::~server_app() {
-   if( p_worker != NULL) {
-       delete p_worker;
-   }
 }
 
 void server_app::start (){
 
     int fd_l;
-    int iterations = 9999;
+    int iterations = 99;
     assert(p_srv != NULL);
 
     try {
 
         p_srv->server_setup();
         p_srv->server_listen();
-	p_worker = NULL;
 
         while( iterations-- ) {
  
-           fd_l = p_srv->server_wait();
+            fd_l = p_srv->server_wait();
 
-	   std::thread thread_l1(&server_app::handle_request, this, fd_l);
-	   thread_l1.join();
+	    std::thread thread_l1(&server_app::handle_request, this, fd_l);
 
-	   /*
-	   * check if a request is decoded
-	   **/
-	   if (p_worker != NULL) {
-              /*
-               * start the thread which will 
-	       * handle the reply to the client
-	       * */
-	       std::thread thread_l2(&server_app::thread_server_reply, this);
-               thread_l2.join();
-	   }
-       }
+	    /**
+	    * check if a request is decoded
+	    */
+	    std::thread thread_l2(&server_app::thread_server_reply, this);
+            thread_l2.join();
+	    thread_l1.join();
+        }
     }
     catch(const client_exception& e) {
        std::cout << e.get_message() << std::endl;
@@ -63,6 +54,7 @@ void server_app::handle_request(int fd) {
     unsigned int bytes_read_l;
     unsigned char message_l[MESSAGE_MAX_SIZE];
     unsigned char* buff = &message_l[0];
+    worker* worker_l;
 
     std::lock_guard<std::mutex> lock(p_handle_request_mutex);
 
@@ -86,13 +78,18 @@ void server_app::handle_request(int fd) {
 	* prepare a test worker instance to be handled later
 	* see the thread_server_reply below
 	*/
-       p_fd = fd;
-       p_worker = new test_worker(p_msg_test->test_id, p_msg_test->items, p_msg_test->threshold);
+       worker_l = new test_worker(p_msg_test->test_id, p_msg_test->items, p_msg_test->threshold);
 
+       /**
+          store a pair fd, worker instance
+       */
+       if (p_server_map.find(fd) == p_server_map.end()) {
+           p_server_map.insert(std::make_pair(fd, worker_l));
+       }
+       else {
+           std::cout << "server_app, fd already exists!" << std::endl;
+       }
        delete []p_message;
-    }
-    else {
-       p_worker = NULL;
     }
     delete []p_header;
 }
@@ -100,23 +97,29 @@ void server_app::handle_request(int fd) {
 void server_app::thread_server_reply () {
 
    char l_message[MESSAGE_MAX_SIZE];
+   int fd_l;
 
-   assert(p_worker != NULL);
-
-   (void)p_worker->process();
-
-   delete p_worker;
+   /**
+     handle one request 
+   */
+   for (std::map<int,worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
+      it->second->process();
+      fd_l = it->first;
+      p_server_map.erase(it);
+      delete it->second;
+      break;
+   }
 
    /* perform a "TEST" and reply */
    strcpy(l_message, "Bau");
-   /*
+   /**
     * ensure a NON BLOCKING write operation
-    **/
-   if ( fcntl(p_fd, F_SETFL, O_NONBLOCK) < 0 ) {
+    */
+   if ( fcntl(fd_l, F_SETFL, O_NONBLOCK) < 0 ) {
          throw client_exception("Exception, cannot set NONBLOCK on socket fd");
    }
 
-   ssize_t written_l = write(p_fd, (void*)l_message, 4);
+   ssize_t written_l = write(fd_l, (void*)l_message, 4);
    if (written_l < 0) {
        throw client_exception("Exception, cannot write the required nb of bytes");
    }

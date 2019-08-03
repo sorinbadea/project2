@@ -1,4 +1,7 @@
 #include "server.h"
+#include "exception.hpp"
+
+class client_exception;
 
 server::server (unsigned int comm_port) {
 
