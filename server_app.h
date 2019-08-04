@@ -28,9 +28,9 @@ class server_app {
    std::map<const int, worker*> p_server_map;
 
    /**
-    * mutexe for request and reply threads 
+    * mutex for server map updates
     */
-   std::mutex p_handle_request_mutex;
+   std::mutex p_server_map_mutex;
 
    /**
     * execute and reply the result to server
@@ -38,13 +38,15 @@ class server_app {
     **/ 
    void thread_server_reply();
 
+   /**
+    * update the server map 
+    */
    void update_server_map(const int, worker*);
 
 public:
 
    server_app(const server_app& ) = delete;
    server_app& operator=(const server_app&) = delete;
-
    ~server_app();
 
    /**

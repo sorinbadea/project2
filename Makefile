@@ -17,7 +17,7 @@ $(EXE_CL): $(OBJECTS_CL)
 	$(CC) $(LDFLAGS) $(OBJECTS_CL) -g -o $@
 
 $(EXE_SRV): $(OBJECTS_SRV)
-	$(CC) $(LDFLAGS) $(OBJECTS_SRV) -g -o $@
+	$(CC) -DCLS_DEBUG $(LDFLAGS) $(OBJECTS_SRV) -g -o $@
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@

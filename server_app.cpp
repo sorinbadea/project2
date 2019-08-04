@@ -36,7 +36,10 @@ void server_app::start (){
         p_srv->server_listen();
 
         while( iterations-- ) {
- 
+
+            #ifdef CLS_DEBUG
+                std::cout << "waiting for accept.." << std::endl;
+            #endif
             fd_l = p_srv->server_wait();
 
 	    std::thread thread_l1(&server_app::handle_request, this, fd_l);
@@ -49,7 +52,6 @@ void server_app::start (){
             /**
              * block current thread until the threads below finishes
              */ 
-            std::cout << "waiting for the threads to finish.." << std::endl;
 	    thread_l1.join();
             thread_l2.join();
         }
@@ -97,7 +99,7 @@ void server_app::handle_request(int fd) {
 
 void server_app::update_server_map(const int fd, worker* worker) {
 
-    std::lock_guard<std::mutex> lock(p_handle_request_mutex);
+    std::lock_guard<std::mutex> lock(p_server_map_mutex);
     /**
       store a pair: <fd, worker instance>
     */
@@ -111,7 +113,7 @@ void server_app::update_server_map(const int fd, worker* worker) {
     }
 }
 
-void server_app::thread_server_reply () {
+void server_app::thread_server_reply() {
 
    char message_l[MESSAGE_MAX_SIZE];
    int fd_l;
@@ -119,11 +121,11 @@ void server_app::thread_server_reply () {
    /**
     * handle request 
     */
-   //#ifdef CLS_DEBUG
+   #ifdef CLS_DEBUG
        std::cout << "server_app, size of map:" << p_server_map.size() << std::endl;
-   //#endif
+   #endif
+   std::lock_guard<std::mutex> lock(p_server_map_mutex);
 
-   std::lock_guard<std::mutex> lock(p_handle_request_mutex);
    for (std::map<const int, worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
        it->second->process();
        fd_l = it->first;
