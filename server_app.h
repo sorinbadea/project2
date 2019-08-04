@@ -25,7 +25,7 @@ class server_app {
     * each worker are dedicated to a specific request:
     * (test request, registration request, connection request)
     **/
-   std::map<int, worker*> p_server_map;
+   std::map<const int, worker*> p_server_map;
 
    /**
     * mutexe for request and reply threads 
@@ -37,6 +37,8 @@ class server_app {
     * @param: none
     **/ 
    void thread_server_reply();
+
+   void update_server_map(const int, worker*);
 
 public:
 
