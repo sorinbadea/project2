@@ -63,15 +63,12 @@ void server_app::start (){
 
 void server_app::handle_request(int fd) {
 
-    unsigned int bytes_read_l;
+    int bytes_read_l;
     unsigned char message_l[MESSAGE_MAX_SIZE];
     unsigned char* buff = &message_l[0];
     worker* worker_l;
 
-    bytes_read_l = (int)read(fd, (void*)message_l, MESSAGE_MAX_SIZE);
-    if (bytes_read_l < 0) {
-        throw server_exception("Exception, while reading socket");
-    }
+    bytes_read_l = p_srv->cls_read(fd, (void*)message_l, MESSAGE_MAX_SIZE);
 
     p_header = new unsigned char[sizeof(message_header_t)];
     memcpy((void*)(p_header), (void*)message_l, (ssize_t)sizeof(message_header_t));
@@ -114,7 +111,6 @@ void server_app::update_server_map(const int fd, worker* worker) {
 }
 
 void server_app::thread_server_reply() {
-
    char message_l[MESSAGE_MAX_SIZE];
    int fd_l;
 
@@ -127,25 +123,17 @@ void server_app::thread_server_reply() {
    std::lock_guard<std::mutex> lock(p_server_map_mutex);
 
    for (std::map<const int, worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
+
+       /** process the request and reply */
        it->second->process();
        fd_l = it->first;
-       /** free  worker instance */
+       /** free the worker instance */
        delete it->second;
 
-       /* perform a "TEST" and reply */
+       //dummy reply
        strcpy(message_l, "Bau");
-       /**
-        * ensure a NON BLOCKING write operation
-        */
-       if (fcntl(fd_l, F_SETFL, O_NONBLOCK) < 0) {
-           throw client_exception("Exception, cannot set NONBLOCK on socket fd");
-       }
-
-       ssize_t written_l = write(fd_l, (void*)message_l, 4);
-       if (written_l < 0) {
-           throw client_exception("Exception, cannot write the required nb of bytes");
-       }
-       std::cout << "server, bytes replied.." << std::endl;
+       ssize_t written_l = p_srv->cls_write(fd_l, (void*)message_l, 4);
+       std::cout << "server " << written_l << " bytes replied.." << std::endl;
    
        /** free file descriptor */
        p_srv->fd_close(fd_l);

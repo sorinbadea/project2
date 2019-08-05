@@ -6,6 +6,9 @@
 #include <vector>
 #include <map>
 
+/**
+ * forward declarations 
+*/
 class server;
 class server_tcp;
 class server_udp;
@@ -22,7 +25,7 @@ class server_app {
 
    /**
     * map <file descriptor, pointer to a worker instance>
-    * each worker are dedicated to a specific request:
+    * each worker are dedicated to a specific fd:
     * (test request, registration request, connection request)
     **/
    std::map<const int, worker*> p_server_map;
@@ -39,7 +42,7 @@ class server_app {
    void thread_server_reply();
 
    /**
-    * update the server map 
+    * update the server fd, worker instance map 
     */
    void update_server_map(const int, worker*);
 

@@ -16,10 +16,8 @@
 #include <mutex>
 
 class server_app;
-class server_io;
 
 class server {
-
 protected:
    /**
     * socket data */
@@ -46,6 +44,11 @@ protected:
     */
    server_app* p_server_app;
 
+   /**
+    * queue size
+    */
+   unsigned int p_queue_size;
+
 public:
    virtual ~server();
 
@@ -67,7 +70,6 @@ public:
     * for UDP serveres: nothing */
    virtual void fd_close(int) = 0;
 
-
    /** 
     * UDP servers: blocks until a request arrives
     * TCP servers: calls "accept" and
@@ -75,16 +77,23 @@ public:
     *
     */
    virtual int server_wait() = 0;
+
+   /**
+    * read,write interface;
+    * separate impl. for UDP and TCP server
+    */
+   virtual int cls_read(int, void*, size_t) = 0;
+   virtual ssize_t cls_write(int, void*, size_t) = 0;
 };
 
+/** 
+  TCP server impl.
+*/
 class server_tcp : public server {
-
-   unsigned int p_queue_size;
 
 public:
 
    server_tcp(const unsigned int, const unsigned int, server_app*);
-
    ~server_tcp();
 
    /**
@@ -93,20 +102,24 @@ public:
    void server_listen();
 
    /**
-    * thread handling a new connection request
-    * using the fd returned by accept()
+    * blocks until a request arrive
     */
-   void thread_io(int fd);
-
    int server_wait();
 
+   /**
+    * release fd
+    */
    void fd_close(int);
+
+   int cls_read(int, void*, size_t);
+
+   ssize_t cls_write(int, void*, size_t);
 };
 
-
+/**
+  UDP server impl.
+*/
 class server_udp : public server {
-
-   unsigned int p_queue_size;
 
    fd_set p_set;
    struct timeval p_timeout;
@@ -114,7 +127,6 @@ class server_udp : public server {
 public:
 
    server_udp(const unsigned int, const unsigned int, server_app*);
-
    ~server_udp();
 
    /**
@@ -123,14 +135,18 @@ public:
    void server_listen();
 
    /**
-    * thread handling a new connection request
-    * using the fd returned by accept()
+    * blocks until a request arrive
     */
-   void thread_io(int fd);
-
    int server_wait();
 
+   /**
+    * release the fd
+    */
    void fd_close(int);
+
+   int cls_read(int, void*, size_t);
+
+   ssize_t cls_write(int, void*, size_t);
 };
 
 #endif
