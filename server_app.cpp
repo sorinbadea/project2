@@ -120,6 +120,9 @@ void server_app::thread_server_reply() {
    #ifdef CLS_DEBUG
        std::cout << "server_app, size of map:" << p_server_map.size() << std::endl;
    #endif
+
+   while (p_server_map.empty()) {
+   }
    std::lock_guard<std::mutex> lock(p_server_map_mutex);
 
    for (std::map<const int, worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
