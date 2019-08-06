@@ -6,10 +6,10 @@ server_app::server_app ( const server_type s_type,
                          const unsigned int q_size ) {
 
    if (s_type == server_type::SERVER_TCP) {
-       p_srv = std::shared_ptr<server_tcp>(new server_tcp(port, q_size, this));
+       p_srv = std::shared_ptr<server_tcp>(new server_tcp(port, q_size));
    }
    else if (s_type == server_type::SERVER_UDP) {
-       p_srv = std::shared_ptr<server_udp>(new server_udp(port, q_size, this));
+       p_srv = std::shared_ptr<server_udp>(new server_udp(port, q_size));
    }
    else {
       assert(0);

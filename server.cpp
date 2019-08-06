@@ -39,12 +39,10 @@ server::~server() {
  * TCP server impl.
  */
 server_tcp::server_tcp (const unsigned int comm_port, 
-                        const unsigned int q_size, 
-                        server_app* p_sap) : server(comm_port) {
+                        const unsigned int q_size ) : server(comm_port) {
     assert(q_size >0);
     p_conn_type = SOCK_STREAM;
     p_queue_size = q_size;
-    p_server_app = p_sap;
 }
 
 void server_tcp::server_listen() {
@@ -106,12 +104,10 @@ ssize_t server_tcp::cls_write(int fd, void* message_l, size_t size) {
  * UDP server  impl.
  */
 server_udp::server_udp(const unsigned int comm_port,
-                       const unsigned int q_size,
-                       server_app* p_sap) : server(comm_port) {
+                       const unsigned int q_size ) : server(comm_port) {
     assert(q_size >0);
     p_conn_type = SOCK_DGRAM;
     p_queue_size = q_size;
-    p_server_app = p_sap;
 }
 
 void server_udp::server_listen() {

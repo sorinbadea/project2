@@ -15,8 +15,6 @@
 #include <fcntl.h>
 #include <mutex>
 
-class server_app;
-
 class server {
 protected:
    /**
@@ -38,11 +36,6 @@ protected:
    int p_conn_type;
 
    explicit server (const unsigned int comm_port);
-
-   /**
-    * references to server_app and server_io classes
-    */
-   server_app* p_server_app;
 
    /**
     * queue size
@@ -93,7 +86,7 @@ class server_tcp : public server {
 
 public:
 
-   server_tcp(const unsigned int, const unsigned int, server_app*);
+   server_tcp(const unsigned int, const unsigned int);
    ~server_tcp();
 
    /**
@@ -126,7 +119,7 @@ class server_udp : public server {
 
 public:
 
-   server_udp(const unsigned int, const unsigned int, server_app*);
+   server_udp(const unsigned int, const unsigned int);
    ~server_udp();
 
    /**
