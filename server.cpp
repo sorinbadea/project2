@@ -1,5 +1,5 @@
 #include "server.h"
-#include "exception.hpp"
+#include "exception.h"
 
 class client_exception;
 

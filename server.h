@@ -13,7 +13,8 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#include <mutex>
+
+#include "messages.h"
 
 class server {
 protected:
@@ -32,7 +33,8 @@ protected:
    int p_a_sockfd;
    
    /**
-    *  UDP or TCP connection, SOCK_DGRAM or SOCK_STREAM */
+    *  UDP or TCP connection, SOCK_DGRAM or SOCK_STREAM 
+    */
    int p_conn_type;
 
    explicit server (const unsigned int comm_port);
@@ -104,8 +106,14 @@ public:
     */
    void fd_close(int);
 
+   /*
+    * TCP server read specialization
+    */
    int cls_read(int, void*, size_t);
 
+   /**
+    * TCP server write specialzation
+    */
    ssize_t cls_write(int, void*, size_t);
 };
 
@@ -137,8 +145,14 @@ public:
     */
    void fd_close(int);
 
+   /**
+    * UDP server write specialzation
+    */
    int cls_read(int, void*, size_t);
 
+   /**
+    * UDP server write specialization
+    */
    ssize_t cls_write(int, void*, size_t);
 };
 

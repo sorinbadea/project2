@@ -1,5 +1,7 @@
 #include <thread>
 #include "client.h"
+#include "exception.h"
+#include "messages.h"
 
 client::client(unsigned int comm_port){
 

@@ -1,5 +1,4 @@
 #include "server_app.h"
-#include "exception.hpp"
 
 server_app::server_app ( const server_type s_type, 
                          const unsigned int port, 
@@ -98,8 +97,8 @@ void server_app::update_server_map(const int fd, worker* worker) {
 
     std::lock_guard<std::mutex> lock(p_server_map_mutex);
     /**
-      store a pair: <fd, worker instance>
-    */
+     * store a pair: <fd, worker instance>
+     */
     if (p_server_map.find(fd) == p_server_map.end()) {
         p_server_map.insert(std::make_pair(fd, worker));
     }

@@ -11,8 +11,6 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-#include "exception.hpp"
-
 class client {
 
    //communication socket

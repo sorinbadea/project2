@@ -3,6 +3,7 @@
 #include <memory>
 #include "client.h"
 #include "messages.h"
+#include "exception.h"
 
 class client_app {
 

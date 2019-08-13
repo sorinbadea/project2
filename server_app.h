@@ -3,8 +3,9 @@
 #include "server.h"
 #include "worker.h"
 #include "messages.h"
-#include <vector>
+#include "exception.h"
 #include <map>
+#include <mutex>
 
 /**
  * forward declarations 
@@ -67,13 +68,12 @@ public:
    void subscribe( const unsigned int message_id);
 
    /**
-    *start a server instance
+    * start a server instance
     */
    void start();
 
    /**
-    * handle client requests
-    * TEST/REGISTRATION/CONNECTION
+    * handle a client requests i.e: TEST/REGISTRATION/CONNECTION
     * @param: fd : file descriptor to reply at
     **/ 
    void handle_request (int fd);
