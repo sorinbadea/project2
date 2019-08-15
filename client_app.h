@@ -1,9 +1,9 @@
 #ifndef CLIENT_APP_H
 #define CLIENT_APP_H
+#include <assert.h>
 #include <memory>
 #include "client.h"
 #include "messages.h"
-#include "exception.h"
 
 class client_app {
    /**
@@ -15,8 +15,23 @@ class client_app {
     */
    unsigned int p_message_length;
 
+   /**
+    * stores the client type, udp or tcp
+    */
+   client_type p_cl_type;
+
+   /**
+    * udp client instance  
+    */
+   std::shared_ptr<client_tcp> p_cl;
+
 public:
-   client_app();
+   /**
+    * client app constructor
+    * @param c_type: tcp or udp client
+    */
+   explicit client_app(const client_type c_type);
+
    client_app(const client_app& ) = delete;
    client_app& operator= (const client_app& ) = delete;
 

@@ -24,6 +24,11 @@ enum class server_type {
     SERVER_TCP
 };
 
+enum class client_type {
+    CLIENT_UDP = 0,
+    CLIENT_TCP
+};
+
 typedef struct {
    message_ids message_id;
    unsigned short message_size;

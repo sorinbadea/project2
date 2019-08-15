@@ -3,7 +3,7 @@
 #include "exception.h"
 #include "messages.h"
 
-client::client(unsigned int comm_port){
+client_tcp::client_tcp(unsigned int comm_port){
 
     memset(&p_servaddr, 0, sizeof(p_servaddr));
     p_servaddr.sin_family = AF_INET;
@@ -19,7 +19,7 @@ client::client(unsigned int comm_port){
 
 }
 
-void client::client_connect() {
+void client_tcp::client_connect() {
     // connect the client socket to server socket 
     if (connect(p_sockfd, (SA*)&p_servaddr, sizeof(p_servaddr)) != 0) {
         throw client_exception("Exception, connection with the server failed");
@@ -27,12 +27,12 @@ void client::client_connect() {
     std::cout << "connection succeed" << std::endl;
 }
 
-client::~client() {
+client_tcp::~client_tcp() {
     std::cout << "socket destroyed" << std::endl;
     close(p_sockfd);
 }
 
-size_t client::send_message(const unsigned char* message, const unsigned int message_length) {
+size_t client_tcp::send_message(const unsigned char* message, const unsigned int message_length) {
     ssize_t message_size_l = (ssize_t)message_length;
 
     /*
@@ -49,7 +49,7 @@ size_t client::send_message(const unsigned char* message, const unsigned int mes
     return written_l;
 }
 
-size_t client::read_message(char* message, unsigned int timeout_sec ) {
+size_t client_tcp::read_message(char* message, unsigned int timeout_sec ) {
     size_t bytes_read_l = 0;
     int rv_l;
 

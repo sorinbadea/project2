@@ -6,10 +6,13 @@ void send_request() {
     
     int loops = 3;
     static int test_id = 0;
-    client_app a;
+    static int items = 2;
+    static float threshold = 3.32;
+
+    client_app app(client_type::CLIENT_TCP);
     while( loops-- ) {
-       a.request_test(test_id++, 2, 3.33);
-       a.send_request();
+       app.request_test(test_id++, items++, threshold);
+       app.send_request();
     }
 }
 

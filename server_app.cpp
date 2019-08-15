@@ -68,6 +68,9 @@ void server_app::handle_request(int fd) {
     worker* worker_l;
 
     bytes_read_l = p_srv->cls_read(fd, (void*)message_l, MESSAGE_MAX_SIZE);
+    if (bytes_read_l < 0) {
+        return;
+    } 
 
     p_header = new unsigned char[sizeof(message_header_t)];
     memcpy((void*)(p_header), (void*)message_l, (ssize_t)sizeof(message_header_t));

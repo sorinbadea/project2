@@ -79,7 +79,7 @@ server_tcp::~server_tcp() {
 int server_tcp::cls_read(int fd, void* message_l, size_t size) {
     ssize_t bytes_read_l = read(fd, (void*)message_l, (size_t)MESSAGE_MAX_SIZE);
     if (bytes_read_l < 0) {
-        throw server_exception("Exception, while reading socket");
+        std::cout << "error, while reading socket" << std::endl;
     }
     return (int)bytes_read_l;
 }
@@ -94,7 +94,7 @@ ssize_t server_tcp::cls_write(int fd, void* message_l, size_t size) {
 
    ssize_t written_l = write(fd, (void*)message_l, 4);
    if (written_l < 0) {
-      throw server_exception("Exception, cannot write the required nb of bytes");
+      std::cout << "error, cannot write the required nb of bytes" << std::endl;
    }
    return written_l;
 }

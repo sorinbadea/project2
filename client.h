@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-class client {
+class client_tcp {
 
    /**
      communication socket
@@ -29,8 +29,8 @@ class client {
 
 public:
     
-   explicit client (const unsigned int comm_port);
-   ~client();
+   explicit client_tcp (const unsigned int comm_port);
+   ~client_tcp();
 
    void client_connect();
 
