@@ -74,7 +74,6 @@ void server_tcp::fd_close(int fd) {
 }
 
 server_tcp::~server_tcp() {
-   close(p_sockfd);
 }
 
 int server_tcp::cls_read(int fd, void* message_l, size_t size) {
@@ -90,12 +89,12 @@ ssize_t server_tcp::cls_write(int fd, void* message_l, size_t size) {
     * ensure a NON BLOCKING write operation
     */
    if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0) {
-       throw client_exception("Exception, cannot set NONBLOCK on socket fd");
+       throw server_exception("Exception, cannot set NONBLOCK on socket fd");
    }
 
    ssize_t written_l = write(fd, (void*)message_l, 4);
    if (written_l < 0) {
-      throw client_exception("Exception, cannot write the required nb of bytes");
+      throw server_exception("Exception, cannot write the required nb of bytes");
    }
    return written_l;
 }
@@ -125,16 +124,16 @@ int server_udp::server_wait() {
 
     rv_l = select(p_sockfd + 1, &p_set, NULL, NULL, &p_timeout);
     if(rv_l == -1) {
-       throw client_exception("Exception, select call returned -1");
+       throw server_exception("Exception, select call returned -1");
     }
     else if (rv_l == 0) {
-       throw client_exception("Exception, timeout occured");
+       throw server_exception("Exception, timeout occured");
     }
     else if FD_ISSET(p_sockfd, &p_set) {
        return p_sockfd;
     }
     else {
-       throw client_exception("Exception, following select");
+       throw server_exception("Exception, following select");
     }
 
     return 0;
@@ -144,7 +143,6 @@ void server_udp::fd_close(int fd) {
 }
 
 server_udp::~server_udp() {
-   close(p_sockfd);
 }
 
 int server_udp::cls_read(int fd, void* message_l, size_t size) {

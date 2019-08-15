@@ -55,7 +55,7 @@ void server_app::start (){
             thread_l2.join();
         }
     }
-    catch(const client_exception& e) {
+    catch(const server_exception& e) {
        std::cout << e.get_message() << std::endl;
     }
 }
