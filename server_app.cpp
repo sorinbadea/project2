@@ -98,6 +98,12 @@ void server_app::handle_request(int fd) {
        }
        delete []p_header;
     }
+    else {
+       /**
+        * add some dummy info in order to not block the consumer
+        */
+       this->update_server_map(-1, NULL);
+    }
 }
 
 void server_app::update_server_map(const int fd, worker* worker) {
@@ -133,21 +139,26 @@ void server_app::thread_server_reply() {
        p_cv_server_map.wait(lock);
    }
 
-   for (std::map<const int, worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
+   for (std::map<const int, worker*>::iterator it=p_server_map.begin(); 
+        it!=p_server_map.end(); ++it) {
 
-       /** process the request and reply */
-       it->second->process();
-       fd_l = it->first;
-       /** free the worker instance */
-       delete it->second;
+       /** if the handle_request succeed */
+       if (it->first != -1 && it->second != NULL) {
 
-       //dummy reply
-       strcpy(message_l, "Bau");
-       ssize_t written_l = p_srv->cls_write(fd_l, (void*)message_l, 4);
-       std::cout << "server " << written_l << " bytes replied.." << std::endl;
+           /** process the request and reply */
+           it->second->process();
+           fd_l = it->first;
+           /** free the worker instance */
+           delete it->second;
+
+           //dummy reply
+           strcpy(message_l, "Bau");
+           ssize_t written_l = p_srv->cls_write(fd_l, (void*)message_l, 4);
+           std::cout << "server " << written_l << " bytes replied.." << std::endl;
    
-       /** free file descriptor */
-       p_srv->fd_close(fd_l);
+           /** free file descriptor */
+           p_srv->fd_close(fd_l);
+       }
        p_server_map.erase(it);
    }
 }
