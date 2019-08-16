@@ -108,13 +108,13 @@ void server_app::update_server_map(const int fd, worker* worker) {
      */
     if (p_server_map.find(fd) == p_server_map.end()) {
         p_server_map.insert(std::make_pair(fd, worker));
+        p_cv_server_map.notify_all();
     }
     else {
         #ifdef CLS_DEBUG
             std::cout << "server_app, fd already exists!" << std::endl;
         #endif
     }
-    p_cv_server_map.notify_all();
 }
 
 void server_app::thread_server_reply() {

@@ -64,12 +64,6 @@ public:
    explicit server_app(const server_type s_type, const unsigned int port, const unsigned int q_size);
 
    /**
-    * subscribe to a speciffic request
-    * @param: message type to subscribe at
-    */
-   void subscribe( const unsigned int message_id);
-
-   /**
     * start a server instance
     */
    void start();
