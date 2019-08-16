@@ -2,8 +2,8 @@ CC=g++ -std=c++11
 CFLAGS=-c
 LDFLAGS= -pthread
 
-SOURCES_CL=exception.cpp client.cpp client_app.cpp main_cl.cpp
-SOURCES_SRV=exception.cpp server.cpp server_app.cpp worker.cpp main_srv.cpp
+SOURCES_CL=exception_cl.cpp client.cpp client_app.cpp main_cl.cpp
+SOURCES_SRV=exception_srv.cpp server.cpp server_app.cpp worker.cpp main_srv.cpp
 
 OBJECTS_SRV=$(SOURCES_SRV:.cpp=.o)
 OBJECTS_CL=$(SOURCES_CL:.cpp=.o)
@@ -17,7 +17,7 @@ $(EXE_CL): $(OBJECTS_CL)
 	$(CC) $(LDFLAGS) $(OBJECTS_CL) -g -o $@
 
 $(EXE_SRV): $(OBJECTS_SRV)
-	$(CC) -DGLIBCXX_USE_CXX11 -DCLS_DEBUG $(LDFLAGS) $(OBJECTS_SRV) -g -o $@
+	$(CC) -DCLS_DEBUG $(LDFLAGS) $(OBJECTS_SRV) -g -o $@
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@

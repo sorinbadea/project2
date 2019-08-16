@@ -16,7 +16,10 @@ server_app::server_app ( const server_type s_type,
 }
 
 server_app::~server_app() {
-   for (std::map<const int, worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
+   for (std::map<const int, worker*>::iterator it=p_server_map.begin();
+       it!=p_server_map.end(); 
+       ++it) {
+
        delete it->second;
        p_srv->fd_close(it->first);
        p_server_map.erase(it);
@@ -49,7 +52,7 @@ void server_app::start (){
 	    std::thread thread_l2(&server_app::thread_server_reply, this);
 
             /**
-             * block current thread until the threads below finishes
+             * wait until the threads below finishes
              */ 
 	    thread_l1.join();
             thread_l2.join();
@@ -68,32 +71,33 @@ void server_app::handle_request(int fd) {
     worker* worker_l;
 
     bytes_read_l = p_srv->cls_read(fd, (void*)message_l, MESSAGE_MAX_SIZE);
-    if (bytes_read_l < 0) {
-        return;
-    } 
+    if (bytes_read_l > 0) {
 
-    p_header = new unsigned char[sizeof(message_header_t)];
-    memcpy((void*)(p_header), (void*)message_l, (ssize_t)sizeof(message_header_t));
-    message_header_t* p_msg_header = reinterpret_cast<message_header_t*>(p_header);
+        p_header = new unsigned char[sizeof(message_header_t)];
+        memcpy((void*)(p_header), (void*)message_l, (ssize_t)sizeof(message_header_t));
+        message_header_t* p_msg_header = reinterpret_cast<message_header_t*>(p_header);
 
-    if (p_msg_header->message_id == message_ids::TEST) {
+       if (p_msg_header->message_id == message_ids::TEST) {
 
-       p_message = new unsigned char[sizeof(message_test_t)];
-       buff += sizeof(message_header_t);
-       memcpy((void*)p_message, (void*)buff, (ssize_t)sizeof(message_test_t));
-       message_test_t* p_msg_test = reinterpret_cast<message_test_t*>(p_message);
+           p_message = new unsigned char[sizeof(message_test_t)];
+           buff += sizeof(message_header_t);
+           memcpy((void*)p_message, (void*)buff, (ssize_t)sizeof(message_test_t));
+           message_test_t* p_msg_test = reinterpret_cast<message_test_t*>(p_message);
 
-       /*
-	* prepare a test worker instance to be handled later
-	* see the thread_server_reply below
-	*/
-       worker_l = new test_worker(p_msg_test->test_id, p_msg_test->items, p_msg_test->threshold);
+           /**
+	   * prepare a test worker instance to be handled later
+	   * see the thread_server_reply below
+	   */
+           worker_l = new test_worker(p_msg_test->test_id, 
+                                  p_msg_test->items, 
+                                  p_msg_test->threshold);
 
-       this->update_server_map(fd, worker_l);
+           this->update_server_map(fd, worker_l);
 
-       delete []p_message;
+           delete []p_message;
+       }
+       delete []p_header;
     }
-    delete []p_header;
 }
 
 void server_app::update_server_map(const int fd, worker* worker) {
@@ -117,14 +121,12 @@ void server_app::thread_server_reply() {
    int fd_l;
 
    /**
-    * handle request 
+    * prepare reply 
     */
    #ifdef CLS_DEBUG
        std::cout << "server_app, size of map:" << p_server_map.size() << std::endl;
    #endif
 
-   while (p_server_map.empty()) {
-   }
    std::lock_guard<std::mutex> lock(p_server_map_mutex);
 
    for (std::map<const int, worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
