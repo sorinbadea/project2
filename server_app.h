@@ -6,6 +6,7 @@
 #include "exception.h"
 #include <map>
 #include <mutex>
+#include <condition_variable>
 
 /**
  * forward declarations 
@@ -35,6 +36,7 @@ class server_app {
     * mutex for server map updates
     */
    std::mutex p_server_map_mutex;
+   std::condition_variable p_cv_server_map;
 
    /**
     * execute and reply the result to server

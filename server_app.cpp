@@ -44,16 +44,16 @@ void server_app::start (){
             #endif
             fd_l = p_srv->server_wait();
 
+            /**
+             * check the request
+             */
 	    std::thread thread_l1(&server_app::handle_request, this, fd_l);
 
 	    /**
-	     * request decoding
+	     * reply
 	     */
 	    std::thread thread_l2(&server_app::thread_server_reply, this);
 
-            /**
-             * wait until the threads below finishes
-             */ 
 	    thread_l1.join();
             thread_l2.join();
         }
@@ -102,7 +102,7 @@ void server_app::handle_request(int fd) {
 
 void server_app::update_server_map(const int fd, worker* worker) {
 
-    std::lock_guard<std::mutex> lock(p_server_map_mutex);
+    std::unique_lock<std::mutex> lock(p_server_map_mutex);
     /**
      * store a pair: <fd, worker instance>
      */
@@ -114,6 +114,7 @@ void server_app::update_server_map(const int fd, worker* worker) {
             std::cout << "server_app, fd already exists!" << std::endl;
         #endif
     }
+    p_cv_server_map.notify_all();
 }
 
 void server_app::thread_server_reply() {
@@ -127,7 +128,10 @@ void server_app::thread_server_reply() {
        std::cout << "server_app, size of map:" << p_server_map.size() << std::endl;
    #endif
 
-   std::lock_guard<std::mutex> lock(p_server_map_mutex);
+   std::unique_lock<std::mutex> lock(p_server_map_mutex);
+   while (p_server_map.empty()) {
+       p_cv_server_map.wait(lock);
+   }
 
    for (std::map<const int, worker*>::iterator it=p_server_map.begin(); it!=p_server_map.end(); ++it) {
 
