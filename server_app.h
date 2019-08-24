@@ -20,34 +20,27 @@ class server_app {
    std::shared_ptr<server> p_srv;
 
    /**
-    * request deserialization pointer
+    * mutex for threads synchronization
     */
-   unsigned char* p_header;
-   unsigned char* p_message;
+   std::mutex p_thread1;
+   std::mutex p_main_loop;
 
    /**
-    * map <file descriptor, pointer to a worker instance>
-    * each worker are dedicated to a specific fd:
-    * (test request, registration request, connection request)
-    **/
-   std::map<const int, worker*> p_server_map;
+    * thread proccesing the request condition variable */
+   std::condition_variable p_cv_thread1;
 
    /**
-    * mutex for server map updates
+    * main loop condition variable */
+   std::condition_variable p_cv_main_loop;
+
+   /**
+    * the processing thread finishes job
     */
-   std::mutex p_server_map_mutex;
-   std::condition_variable p_cv_server_map;
+   bool p_handle_request_ready = false;
 
    /**
-    * execute and reply the result to server
-    * @param: none
-    **/ 
-   void thread_server_reply();
-
-   /**
-    * update the server fd, worker instance map 
-    */
-   void update_server_map(const int, worker*);
+    * file handle */
+   int p_fd1;
 
 public:
 
@@ -70,8 +63,32 @@ public:
 
    /**
     * handle a client requests i.e: TEST/REGISTRATION/CONNECTION
-    * @param: fd : file descriptor to reply at
     **/ 
-   void handle_request (int fd);
+   void handle_request1 (int);
+};
+
+class handle_request {
+
+   /**
+    * request deserialization pointer
+    */
+   unsigned char* p_header;
+   unsigned char* p_message;
+
+   /**
+    * socket to respond at */
+   int p_fd;
+
+   /**
+    * pointer to processing class, worker */
+   std::shared_ptr<server> p_srv;
+
+public:
+    explicit handle_request(int fd, std::shared_ptr<server> p_server);
+
+    handle_request( handle_request& ) = delete;
+    handle_request& operator= ( handle_request& ) = delete;
+
+    void process_request();
 };
 #endif

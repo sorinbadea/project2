@@ -16,14 +16,6 @@ server_app::server_app ( const server_type s_type,
 }
 
 server_app::~server_app() {
-   for (std::map<const int, worker*>::iterator it=p_server_map.begin();
-       it!=p_server_map.end(); 
-       ++it) {
-
-       delete it->second;
-       p_srv->fd_close(it->first);
-       p_server_map.erase(it);
-   }
 }
 
 void server_app::start (){
@@ -32,133 +24,118 @@ void server_app::start (){
     int iterations = 99;
     assert(p_srv != NULL);
 
+    /**
+     * thread handling a request
+     */
+    std::thread thread_l1(&server_app::handle_request1, this, iterations);
+	
     try {
-
         p_srv->server_setup();
         p_srv->server_listen();
+        p_fd1 = -1;
 
         while( iterations-- ) {
-
             #ifdef CLS_DEBUG
                 std::cout << "waiting for accept.." << std::endl;
             #endif
-            fd_l = p_srv->server_wait();
-
-            /**
-             * check the request
-             */
-	    std::thread thread_l1(&server_app::handle_request, this, fd_l);
+	    {
+	        std::unique_lock<std::mutex> lock(p_thread1);
+                p_fd1 = p_srv->server_wait();
+	    }
+	    /**
+	     * unlock handle request thread */
+            p_cv_thread1.notify_one();
 
 	    /**
-	     * reply
+	     * wait for the handle_request to finish 
 	     */
-	    std::thread thread_l2(&server_app::thread_server_reply, this);
-
-	    thread_l1.join();
-            thread_l2.join();
+	    {
+	       std::unique_lock<std::mutex> lock(p_main_loop);
+               while(p_handle_request_ready == false)
+                   p_cv_main_loop.wait(lock);
+	    }
+	    p_handle_request_ready = false;
         }
     }
     catch(const server_exception& e) {
        std::cout << e.get_message() << std::endl;
     }
+
+    thread_l1.join();
 }
 
-void server_app::handle_request(int fd) {
+void server_app::handle_request1(int iterations) {
 
+   while (iterations--) {
+      {
+         std::cout << "handle request 1.." << std::endl;
+         std::unique_lock<std::mutex> lock(p_thread1);
+	 while(p_fd1 == -1) 
+             p_cv_thread1.wait(lock);
+      }
+      handle_request request(p_fd1, p_srv);
+      request.process_request();
+      p_fd1 = -1;
+      std::unique_lock<std::mutex> lock(p_main_loop);
+      p_handle_request_ready = true;
+      /**
+       * unlock main_loop */
+      p_cv_main_loop.notify_one();
+   }
+}
+
+/**
+ * handle request impl.
+ */
+handle_request::handle_request(int fd, std::shared_ptr<server> p_server) : p_fd(fd), p_srv(p_server) {
+}	
+
+void handle_request::process_request() {
     int bytes_read_l;
     unsigned char message_l[MESSAGE_MAX_SIZE];
     unsigned char* buff = &message_l[0];
-    worker* worker_l;
 
-    bytes_read_l = p_srv->cls_read(fd, (void*)message_l, MESSAGE_MAX_SIZE);
-    if (bytes_read_l > 0) {
-
+    bytes_read_l = p_srv->cls_read(p_fd, (void*)message_l, MESSAGE_MAX_SIZE);
+    if (bytes_read_l <= 0) {
+        std::cout << "server, read socket error" << std::endl;
+    }
+    else { 
+	
         p_header = new unsigned char[sizeof(message_header_t)];
         memcpy((void*)(p_header), (void*)message_l, (ssize_t)sizeof(message_header_t));
-        message_header_t* p_msg_header = reinterpret_cast<message_header_t*>(p_header);
+        message_header_t* p_msg_header_l = reinterpret_cast<message_header_t*>(p_header);
 
-       if (p_msg_header->message_id == message_ids::TEST) {
+        if (p_msg_header_l->message_id == message_ids::TEST) {
 
-           p_message = new unsigned char[sizeof(message_test_t)];
-           buff += sizeof(message_header_t);
-           memcpy((void*)p_message, (void*)buff, (ssize_t)sizeof(message_test_t));
-           message_test_t* p_msg_test = reinterpret_cast<message_test_t*>(p_message);
+            p_message = new unsigned char[sizeof(message_test_t)];
+            buff += sizeof(message_header_t);
+            memcpy((void*)p_message, (void*)buff, (ssize_t)sizeof(message_test_t));
+            message_test_t* p_msg_test = reinterpret_cast<message_test_t*>(p_message);
 
-           /**
-	   * prepare a test worker instance to be handled later
-	   * see the thread_server_reply below
-	   */
-           worker_l = new test_worker(p_msg_test->test_id, 
-                                  p_msg_test->items, 
-                                  p_msg_test->threshold);
+            /**
+             * prepare a test worker instance
+     	     */
+            worker* worker_l = new test_worker(p_msg_test->test_id, 
+                        p_msg_test->items, 
+                        p_msg_test->threshold);
 
-           this->update_server_map(fd, worker_l);
+            delete []p_message;
 
-           delete []p_message;
+            /** process the request and reply */
+            worker_l->process();
+
+            //dummy reply
+            strcpy((char*)message_l, "Bau");
+            ssize_t written_l = p_srv->cls_write(p_fd, (void*)message_l, 4);
+            std::cout << "server " << written_l << " bytes replied.." << std::endl;
+   
+            delete worker_l;
+
+            /** free file descriptor */
+            p_srv->fd_close(p_fd);
        }
+
        delete []p_header;
     }
-    else {
-       /**
-        * add some dummy info in order to not block the consumer
-        */
-       this->update_server_map(-1, NULL);
-    }
 }
 
-void server_app::update_server_map(const int fd, worker* worker) {
-
-    std::unique_lock<std::mutex> lock(p_server_map_mutex);
-    /**
-     * store a pair: <fd, worker instance>
-     */
-    if (p_server_map.find(fd) == p_server_map.end()) {
-        p_server_map.insert(std::make_pair(fd, worker));
-        p_cv_server_map.notify_all();
-    }
-    else {
-        #ifdef CLS_DEBUG
-            std::cout << "server_app, fd already exists!" << std::endl;
-        #endif
-    }
-}
-
-void server_app::thread_server_reply() {
-   char message_l[MESSAGE_MAX_SIZE];
-   int fd_l;
-
-   /**
-    * prepare reply 
-    */
-   #ifdef CLS_DEBUG
-       std::cout << "server_app, size of map:" << p_server_map.size() << std::endl;
-   #endif
-
-   std::unique_lock<std::mutex> lock(p_server_map_mutex);
-   while (p_server_map.empty()) {
-       p_cv_server_map.wait(lock);
-   }
-
-   for (std::map<const int, worker*>::iterator it=p_server_map.begin(); 
-        it!=p_server_map.end(); ++it) {
-
-       /** if the handle_request succeed */
-       if (it->first != -1 && it->second != NULL) {
-
-           /** process the request and reply */
-           it->second->process();
-           fd_l = it->first;
-           /** free the worker instance */
-           delete it->second;
-
-           //dummy reply
-           strcpy(message_l, "Bau");
-           ssize_t written_l = p_srv->cls_write(fd_l, (void*)message_l, 4);
-           std::cout << "server " << written_l << " bytes replied.." << std::endl;
-   
-           /** free file descriptor */
-           p_srv->fd_close(fd_l);
-       }
-       p_server_map.erase(it);
-   }
-}
