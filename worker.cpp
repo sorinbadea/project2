@@ -16,8 +16,8 @@ request_result_t test_worker::process() {
              << " threshold:" << p_threshold 
              << std::endl;
 
-    p_result.test_id = p_test_id;
-    p_result.test_result = result::SUCCESS;
+    p_result.message_id = p_test_id;
+    p_result.res = result::SUCCESS;
     return p_result;
 }
 

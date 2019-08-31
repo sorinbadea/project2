@@ -1,18 +1,30 @@
 #include <thread>
 #include "client_app.h"
 
-
 void send_request() {
     
     int loops = 3;
     static int test_id = 0;
     static int items = 2;
     static float threshold = 3.32;
+    request_result_t* p_res;
 
     client_app app(client_type::CLIENT_TCP);
-    while( loops-- ) {
+
+    while (loops--) {
+
        app.request_test(test_id++, items++, threshold);
-       app.send_request();
+
+       p_res = app.send_request();
+
+       if (p_res != NULL) {
+          if (p_res->res == result::SUCCESS) {
+             std::cout << "message id:" << p_res->message_id << " OK" << std::endl;
+          }
+	  else {
+              std::cout << "message id:" << p_res->message_id << " KO" << std::endl;
+	  }
+       }
     }
 }
 

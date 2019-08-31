@@ -41,8 +41,8 @@ typedef struct {
 } message_test_t;
 
 typedef struct {
-   unsigned int test_id;
-   result test_result;
+   unsigned int message_id;
+   result res;
 } request_result_t;
 
 #endif

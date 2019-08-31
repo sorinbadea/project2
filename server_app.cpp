@@ -122,11 +122,10 @@ void handle_request::process_request() {
             delete []p_message;
 
             /** process the request and reply */
-            worker_l->process();
+            request_result_t res_l = worker_l->process();
 
             //dummy reply
-            strcpy((char*)message_l, "Bau");
-            ssize_t written_l = p_srv->cls_write(p_fd, (void*)message_l, 4);
+            ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));
             std::cout << "server " << written_l << " bytes replied.." << std::endl;
    
             delete worker_l;
@@ -134,7 +133,6 @@ void handle_request::process_request() {
             /** free file descriptor */
             p_srv->fd_close(p_fd);
        }
-
        delete []p_header;
     }
 }

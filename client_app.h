@@ -31,7 +31,6 @@ public:
     * @param c_type: tcp or udp client
     */
    explicit client_app(const client_type c_type);
-
    client_app(const client_app& ) = delete;
    client_app& operator= (const client_app& ) = delete;
 
@@ -44,9 +43,11 @@ public:
    void request_test(const unsigned int test_id, const unsigned int items, const float threshold);
 
    /**
-    * send the  request
+    * send the  request and returns the result
+    * @return - NULL in case of I/O errors
+    *         - the result of the request
     */
-   void send_request();
+   request_result_t* send_request();
 };
 
 #endif

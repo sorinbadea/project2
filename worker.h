@@ -8,7 +8,6 @@ public:
    virtual request_result_t process() = 0;
 };
 
-
 class test_worker : public worker {
 
     /*
