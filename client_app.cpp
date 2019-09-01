@@ -31,31 +31,28 @@ unsigned char* get_request_buffer() {
 client_app::client_app(client_type c_type) : p_cl_type(c_type) {
 }
 
-void client_app::request_test(const unsigned int test_id, const unsigned int items, const float threshold) {
+template<typename T>
+void client_app::prepare_request(const T& request) {
    
-    message_test_t msg_test_l;
     unsigned char* request_l;
  
     /**
      * allocate space for request
      */
-    this->p_message = get_request_buffer<message_test_t>();
+    this->p_message = get_request_buffer<T>();
     request_l = p_message;
-    this->p_message_length = sizeof(message_header_t) + sizeof(message_test_t);
+    this->p_message_length = sizeof(message_header_t) + sizeof(T);
 
     /**
-     * populate test fields
+     * copy the request
      */
-    msg_test_l.test_id = test_id;
-    msg_test_l.items = items;
-    msg_test_l.threshold = threshold;
     request_l += sizeof(message_header_t);
-    memcpy(request_l, (unsigned char*)&msg_test_l, sizeof(message_test_t));
+    memcpy(request_l, (unsigned char*)&request, sizeof(message_test_t));
 }
 
-request_result_t* client_app::send_request() {
+request_result_t* client_app::send_request(const message_test_t& msg_test) {
 
-   assert(p_message != NULL);
+   this->prepare_request<message_test_t>(msg_test);
    request_result_t* p_request_result;
 
    if (p_cl_type == client_type::CLIENT_TCP) {

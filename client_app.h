@@ -25,6 +25,13 @@ class client_app {
     */
    std::shared_ptr<client_tcp> p_cl;
 
+   /**
+    * prepare a request, TEST, REGISTRATION, etc..
+    * @param msg_test - test parameters
+    */
+   template <typename T>
+   void prepare_request(const T& request);
+
 public:
    /**
     * client app constructor
@@ -35,19 +42,12 @@ public:
    client_app& operator= (const client_app& ) = delete;
 
    /**
-    * prepare a test request
-    * @param test_id: test_id
-    * @param items: nb of repetitions
-    * @param threshold: threshold
-    */
-   void request_test(const unsigned int test_id, const unsigned int items, const float threshold);
-
-   /**
-    * send the  request and returns the result
+    * send the request and returns the result
+    * @param: - test parameters
     * @return - NULL in case of I/O errors
     *         - the result of the request
     */
-   request_result_t* send_request();
+   request_result_t* send_request(const message_test_t& msg_test);
 };
 
 #endif

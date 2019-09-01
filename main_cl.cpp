@@ -7,15 +7,18 @@ void send_request() {
     static int test_id = 0;
     static int items = 2;
     static float threshold = 3.32;
+    message_test_t message;
     request_result_t* p_res;
 
     client_app app(client_type::CLIENT_TCP);
 
     while (loops--) {
 
-       app.request_test(test_id++, items++, threshold);
+       message.test_id = test_id++;
+       message.items = items;
+       message.threshold = threshold;
 
-       p_res = app.send_request();
+       p_res = app.send_request(message);
 
        if (p_res != NULL) {
           if (p_res->res == result::SUCCESS) {
