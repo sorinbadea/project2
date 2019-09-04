@@ -1,3 +1,6 @@
+#ifndef CLIENT_APP_CPP
+#define CLIENT_APP_CPP
+#include <type_traits>
 #include "client_app.h"
 #include "exception.h"
 #define TIMEOUT 3
@@ -17,8 +20,15 @@ unsigned char* get_request_buffer() {
    unsigned char* p_request_l = new unsigned char[sizeof(message_header_t) + sizeof(T)];
 
    assert(p_request_l);
-
-   msg_head_l.message_id = message_ids::TEST;
+   if (std::is_same<T, message_test_t>::value) {
+       msg_head_l.message_id = message_ids::TEST;
+   }
+   else if (std::is_same<T, message_registration_t>::value) {
+       msg_head_l.message_id = message_ids::REGISTRATION;
+   }
+   else {
+       assert(0);
+   }
    msg_head_l.message_size = sizeof(T);
    memcpy((void*)p_request_l, (void*)&msg_head_l, sizeof(message_header_t));
    return p_request_l;
@@ -27,12 +37,12 @@ unsigned char* get_request_buffer() {
 /**
  * client app class
  */
-
-client_app::client_app(client_type c_type) : p_cl_type(c_type) {
+template <typename T>
+client_app<T>::client_app(client_type c_type) : p_cl_type(c_type) {
 }
 
 template<typename T>
-void client_app::prepare_request(const T& request) {
+void client_app<T>::prepare_request(const T& request) {
    
     unsigned char* request_l;
  
@@ -47,13 +57,13 @@ void client_app::prepare_request(const T& request) {
      * copy the request
      */
     request_l += sizeof(message_header_t);
-    memcpy(request_l, (unsigned char*)&request, sizeof(message_test_t));
+    memcpy(request_l, (unsigned char*)&request, sizeof(T));
 }
 
-request_result_t* client_app::send_request(const message_test_t& msg_test) {
+template <typename T>
+request_result_t* client_app<T>::send_request(const T& msg_request) {
 
-   this->prepare_request<message_test_t>(msg_test);
-   request_result_t* p_request_result;
+   this->prepare_request(msg_request);
 
    if (p_cl_type == client_type::CLIENT_TCP) {
        p_cl = std::shared_ptr<client_tcp>(new client_tcp(PORT));
@@ -76,3 +86,4 @@ request_result_t* client_app::send_request(const message_test_t& msg_test) {
    delete [] p_message;
    return p_request_result;
 }
+#endif

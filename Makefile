@@ -2,7 +2,7 @@ CC=g++ -std=c++11
 CFLAGS=-c
 LDFLAGS= -pthread
 
-SOURCES_CL=exception_cl.cpp client.cpp client_app.cpp main_cl.cpp
+SOURCES_CL=exception_cl.cpp client.cpp main_cl.cpp
 SOURCES_SRV=exception_srv.cpp server.cpp server_app.cpp worker.cpp main_srv.cpp
 
 OBJECTS_SRV=$(SOURCES_SRV:.cpp=.o)

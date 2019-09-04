@@ -5,6 +5,7 @@
 #include "client.h"
 #include "messages.h"
 
+template <typename T>
 class client_app {
    /**
     * request buffer
@@ -29,8 +30,9 @@ class client_app {
     * prepare a request, TEST, REGISTRATION, etc..
     * @param msg_test - test parameters
     */
-   template <typename T>
    void prepare_request(const T& request);
+
+   request_result_t* p_request_result;
 
 public:
    /**
@@ -43,11 +45,11 @@ public:
 
    /**
     * send the request and returns the result
-    * @param: - test parameters
+    * @param: - msg_request request type
     * @return - NULL in case of I/O errors
     *         - the result of the request
     */
-   request_result_t* send_request(const message_test_t& msg_test);
+   request_result_t* send_request(const T& msg_request);
 };
 
 #endif

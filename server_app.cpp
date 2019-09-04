@@ -133,6 +133,26 @@ void handle_request::process_request() {
             /** free file descriptor */
             p_srv->fd_close(p_fd);
        }
+       else if (p_msg_header_l->message_id == message_ids::REGISTRATION) {
+
+           /**
+             * prepare a test worker instance
+             */
+            worker* worker_l = new registration_worker(1, 2);
+
+            /** process the request and reply */
+            request_result_t res_l = worker_l->process();
+
+            /** reply to client */
+            ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));
+            std::cout << "server " << written_l << " bytes replied.." << std::endl;
+
+            delete worker_l;
+
+            /** free file descriptor */
+            p_srv->fd_close(p_fd); 
+
+       }
        delete []p_header;
     }
 }

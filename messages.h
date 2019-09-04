@@ -42,6 +42,11 @@ typedef struct {
 
 typedef struct {
    unsigned int message_id;
+   unsigned int network_id;
+} message_registration_t;
+
+typedef struct {
+   unsigned int message_id;
    result res;
 } request_result_t;
 
