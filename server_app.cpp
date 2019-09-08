@@ -1,5 +1,8 @@
 #include "server_app.h"
 
+/**
+ * server_app impl.
+ */
 server_app::server_app ( const server_type s_type, 
                          const unsigned int port, 
                          const unsigned int q_size ) {
@@ -79,7 +82,8 @@ void server_app::handle_request1(int iterations) {
       std::unique_lock<std::mutex> lock(p_main_loop);
       p_handle_request_ready = true;
       /**
-       * unlock main_loop */
+       * unlock main_loop 
+       */
       p_cv_main_loop.notify_one();
    }
 }
@@ -115,45 +119,36 @@ void handle_request::process_request() {
             /**
              * prepare a test worker instance
      	     */
-            worker* worker_l = new test_worker(p_msg_test->test_id, 
-                        p_msg_test->items, 
-                        p_msg_test->threshold);
-
+            p_worker = std::shared_ptr<test_worker>(new test_worker(p_msg_test->test_id,
+                                                        p_msg_test->items,
+                                                        p_msg_test->threshold));
+            process_reply_result();
             delete []p_message;
 
-            /** process the request and reply */
-            request_result_t res_l = worker_l->process();
-
-            //dummy reply
-            ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));
-            std::cout << "server " << written_l << " bytes replied.." << std::endl;
-   
-            delete worker_l;
-
-            /** free file descriptor */
-            p_srv->fd_close(p_fd);
        }
        else if (p_msg_header_l->message_id == message_ids::REGISTRATION) {
 
            /**
-             * prepare a test worker instance
+             * prepare a registration worker instance
              */
-            worker* worker_l = new registration_worker(1, 2);
-
-            /** process the request and reply */
-            request_result_t res_l = worker_l->process();
-
-            /** reply to client */
-            ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));
-            std::cout << "server " << written_l << " bytes replied.." << std::endl;
-
-            delete worker_l;
-
-            /** free file descriptor */
-            p_srv->fd_close(p_fd); 
-
+	    p_worker = std::shared_ptr<registration_worker>(new registration_worker(1,2));
+            process_reply_result();
        }
        delete []p_header;
     }
+}
+
+void handle_request::process_reply_result() {
+
+    assert(p_worker != NULL);
+    /** process the request and reply */
+    request_result_t res_l = p_worker->process();
+
+    /** reply to client */
+    ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));
+    std::cout << "server " << written_l << " bytes replied.." << std::endl;
+
+    /** free file descriptor */
+    p_srv->fd_close(p_fd);
 }
 

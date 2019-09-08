@@ -14,7 +14,7 @@ void send_request_test() {
 
     while (loops--) {
 
-       message.test_id = message_id;
+       message.test_id = message_id++;
        message.items = items;
        message.threshold = threshold;
 

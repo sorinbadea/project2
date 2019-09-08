@@ -54,7 +54,7 @@ void client_app<T>::prepare_request(const T& request) {
     this->p_message_length = sizeof(message_header_t) + sizeof(T);
 
     /**
-     * copy the request
+     * copy the request header
      */
     request_l += sizeof(message_header_t);
     memcpy(request_l, (unsigned char*)&request, sizeof(T));

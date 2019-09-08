@@ -45,7 +45,7 @@ public:
 
    /**
     * send the request and returns the result
-    * @param: - msg_request request type
+    * @param: - msg_request request type, TEST, REGISTRATION..
     * @return - NULL in case of I/O errors
     *         - the result of the request
     */

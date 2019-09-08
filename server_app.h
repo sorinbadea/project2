@@ -30,16 +30,18 @@ class server_app {
    std::condition_variable p_cv_thread1;
 
    /**
-    * main loop condition variable */
+    * main loop condition variable 
+    */
    std::condition_variable p_cv_main_loop;
 
    /**
-    * the processing thread finishes job
+    * the processing thread done it's job
     */
    bool p_handle_request_ready = false;
 
    /**
-    * file handle */
+    * socket to respond at 
+    */
    int p_fd1;
 
 public:
@@ -62,7 +64,7 @@ public:
    void start();
 
    /**
-    * handle a client requests i.e: TEST/REGISTRATION/CONNECTION
+    * thread handle a client requests i.e: TEST/REGISTRATION/CONNECTION
     **/ 
    void handle_request1 (int);
 };
@@ -80,8 +82,22 @@ class handle_request {
    int p_fd;
 
    /**
-    * pointer to processing class, worker */
+    * pointer to a tcp_server or other types of
+    * servers, i.e. UDP
+    */
    std::shared_ptr<server> p_srv;
+
+   /**
+    * pointer to a processing instance:
+    * test_worker, registration_worker and other
+    * derivates from worker 
+    */
+   std::shared_ptr<worker> p_worker;
+
+   /**
+    * reply the result of processing to the client
+    */
+   void process_reply_result();
 
 public:
     explicit handle_request(int fd, std::shared_ptr<server> p_server);
