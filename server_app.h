@@ -15,6 +15,9 @@ class server;
 class server_tcp;
 class server_udp;
 
+/**
+ * server application impl. using the server class services
+ */ 
 class server_app {
 
    std::shared_ptr<server> p_srv;
@@ -51,6 +54,7 @@ public:
    ~server_app();
 
    /**
+    * \description
     * server app constructor
     * @param: s_type : server type UDP or TCP
     * @param: port : communication port
@@ -66,16 +70,20 @@ public:
    /**
     * thread handle a client requests i.e: TEST/REGISTRATION/CONNECTION
     **/ 
-   void handle_request1 (int);
+   void thread_handle_request(int);
 };
 
+/**
+ * class handling request, TEST, REGISTRATION,..
+ */
 class handle_request {
 
    /**
-    * request deserialization pointer
+    * request deserialization pointers
     */
    unsigned char* p_header;
    unsigned char* p_message;
+   unsigned char p_message_request[MESSAGE_MAX_SIZE];
 
    /**
     * socket to respond at */
@@ -95,13 +103,29 @@ class handle_request {
    std::shared_ptr<worker> p_worker;
 
    /**
+    * \description
     * reply the result of processing to the client
     */
    void process_reply_result();
+  
+   /**
+    * \description
+    * generic method to allocate the resource request
+    */
+   template <typename T>
+   T* get_message_buffer(); 
 
 public:
+    /**
+     * \description
+     * handle request constructor
+     * @param fd: socket to respond at
+     * @param p_server: reference to a server instance, UDP or TCP
+     */
     explicit handle_request(int fd, std::shared_ptr<server> p_server);
 
+    /**
+     */
     handle_request( handle_request& ) = delete;
     handle_request& operator= ( handle_request& ) = delete;
 

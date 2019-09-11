@@ -30,7 +30,7 @@ void server_app::start (){
     /**
      * thread handling a request
      */
-    std::thread thread_l1(&server_app::handle_request1, this, iterations);
+    std::thread thread_l(&server_app::thread_handle_request, this, iterations);
 	
     try {
         p_srv->server_setup();
@@ -64,10 +64,10 @@ void server_app::start (){
        std::cout << e.get_message() << std::endl;
     }
 
-    thread_l1.join();
+    thread_l.join();
 }
 
-void server_app::handle_request1(int iterations) {
+void server_app::thread_handle_request(int iterations) {
 
    while (iterations--) {
       {
@@ -96,43 +96,38 @@ handle_request::handle_request(int fd, std::shared_ptr<server> p_server) : p_fd(
 
 void handle_request::process_request() {
     int bytes_read_l;
-    unsigned char message_l[MESSAGE_MAX_SIZE];
-    unsigned char* buff = &message_l[0];
 
-    bytes_read_l = p_srv->cls_read(p_fd, (void*)message_l, MESSAGE_MAX_SIZE);
+    bytes_read_l = p_srv->cls_read(p_fd, (void*)&p_message_request[0], MESSAGE_MAX_SIZE);
     if (bytes_read_l <= 0) {
         std::cout << "server, read socket error" << std::endl;
     }
     else { 
-	
+        /**
+	 * check header info
+	 */	
         p_header = new unsigned char[sizeof(message_header_t)];
-        memcpy((void*)(p_header), (void*)message_l, (ssize_t)sizeof(message_header_t));
+        memcpy((void*)(p_header), (void*)&p_message_request[0], (ssize_t)sizeof(message_header_t));
         message_header_t* p_msg_header_l = reinterpret_cast<message_header_t*>(p_header);
 
         if (p_msg_header_l->message_id == message_ids::TEST) {
 
-            p_message = new unsigned char[sizeof(message_test_t)];
-            buff += sizeof(message_header_t);
-            memcpy((void*)p_message, (void*)buff, (ssize_t)sizeof(message_test_t));
-            message_test_t* p_msg_test = reinterpret_cast<message_test_t*>(p_message);
-
+            message_test_t* p_msg_test_l = get_message_buffer<message_test_t>();
             /**
              * prepare a test worker instance
      	     */
-            p_worker = std::shared_ptr<test_worker>(new test_worker(p_msg_test->test_id,
-                                                        p_msg_test->items,
-                                                        p_msg_test->threshold));
+            p_worker = std::shared_ptr<test_worker>(new test_worker(*p_msg_test_l));
             process_reply_result();
             delete []p_message;
-
        }
        else if (p_msg_header_l->message_id == message_ids::REGISTRATION) {
 
-           /**
+            message_registration_t* p_msg_registration_l = get_message_buffer<message_registration_t>();
+            /**
              * prepare a registration worker instance
              */
-	    p_worker = std::shared_ptr<registration_worker>(new registration_worker(1,2));
+	    p_worker = std::shared_ptr<registration_worker>(new registration_worker(*p_msg_registration_l));
             process_reply_result();
+            delete []p_message;
        }
        delete []p_header;
     }
@@ -141,7 +136,7 @@ void handle_request::process_request() {
 void handle_request::process_reply_result() {
 
     assert(p_worker != NULL);
-    /** process the request and reply */
+    /** process the request by the worker */
     request_result_t res_l = p_worker->process();
 
     /** reply to client */
@@ -150,5 +145,13 @@ void handle_request::process_reply_result() {
 
     /** free file descriptor */
     p_srv->fd_close(p_fd);
+}
+
+template <typename T>
+T* handle_request::get_message_buffer() {
+    unsigned char* buff = &p_message_request[0] + sizeof(message_header_t);
+    p_message = new unsigned char[sizeof(T)];
+    memcpy((void*)p_message, (void*)buff, (ssize_t)sizeof(T));
+    return reinterpret_cast<T*>(p_message);
 }
 

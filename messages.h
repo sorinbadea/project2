@@ -1,7 +1,7 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
-#define MESSAGE_MAX_SIZE 1024
+#define MESSAGE_MAX_SIZE 64
 #define PORT 8080 
 #define SA struct sockaddr
 #define QUEUE_SIZE 4

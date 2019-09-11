@@ -11,19 +11,17 @@ public:
 class test_worker : public worker {
 
     /*
-     * test result 
+     * request result 
      **/
     request_result_t p_result;
 
     /*
-     * test parameters
+     * message test parameters
      **/
-    unsigned int p_test_id;
-    unsigned int p_items;
-    float        p_threshold;
+    message_test_t p_msg_test;
 
 public:
-   explicit test_worker( unsigned int, unsigned int, float );
+   explicit test_worker(const message_test_t&);
 
    request_result_t process();
 };
@@ -31,18 +29,17 @@ public:
 class registration_worker : public worker {
 
     /*
-     * test result 
+     * request result 
      **/
     request_result_t p_result;
 
     /*
-     * test parameters
+     * message registration parameters
      **/
-    unsigned int p_message_id;
-    unsigned int p_network_id;
+    message_registration_t p_msg_registration;
 
 public:
-   explicit registration_worker( unsigned int, unsigned int );
+   explicit registration_worker(const message_registration_t&);
 
    request_result_t process();
 };
