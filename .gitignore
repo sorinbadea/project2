@@ -1,5 +1,7 @@
 # Prerequisites
 *.d
+*.cproject
+*.project
 
 # Compiled Object files
 *.slo

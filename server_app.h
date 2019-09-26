@@ -45,7 +45,7 @@ class server_app {
    /**
     * socket to respond at 
     */
-   int p_fd1;
+   int p_fd;
 
 public:
 

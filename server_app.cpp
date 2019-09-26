@@ -25,7 +25,6 @@ void server_app::start (){
 
     int fd_l;
     int iterations = 99;
-    assert(p_srv != NULL);
 
     /**
      * thread handling a request
@@ -35,15 +34,16 @@ void server_app::start (){
     try {
         p_srv->server_setup();
         p_srv->server_listen();
-        p_fd1 = -1;
+        p_fd = -1;
 
-        while( iterations-- ) {
+        while (iterations--) {
+
             #ifdef CLS_DEBUG
                 std::cout << "waiting for accept.." << std::endl;
             #endif
 	    {
+                p_fd = p_srv->server_wait();
 	        std::unique_lock<std::mutex> lock(p_thread1);
-                p_fd1 = p_srv->server_wait();
 	    }
 	    /**
 	     * unlock handle request thread */
@@ -73,12 +73,12 @@ void server_app::thread_handle_request(int iterations) {
       {
          std::cout << "handle request 1.." << std::endl;
          std::unique_lock<std::mutex> lock(p_thread1);
-	 while(p_fd1 == -1) 
+	 while (p_fd == -1) 
              p_cv_thread1.wait(lock);
       }
-      handle_request request(p_fd1, p_srv);
+      handle_request request(p_fd, p_srv);
       request.process_request();
-      p_fd1 = -1;
+      p_fd = -1;
       std::unique_lock<std::mutex> lock(p_main_loop);
       p_handle_request_ready = true;
       /**
@@ -91,7 +91,10 @@ void server_app::thread_handle_request(int iterations) {
 /**
  * handle request impl.
  */
-handle_request::handle_request(int fd, std::shared_ptr<server> p_server) : p_fd(fd), p_srv(p_server) {
+handle_request::handle_request
+(int fd, std::shared_ptr<server> p_server) : p_fd(fd), p_srv(p_server) {
+    assert(p_fd > 0);
+    assert(p_server != NULL);
 }	
 
 void handle_request::process_request() {

@@ -4,20 +4,20 @@
 void send_request_test() {
     
     int loops = 3;
-    int message_id = 0;
-    int items = 2;
-    float threshold = 3.32;
     message_test_t message;
     request_result_t* p_res;
+    /**
+     * initialize client request
+     */
+    message.test_id = 0;
+    message.items = 2;
+    message.threshold = 1.66;
 
     client_app<message_test_t> app(client_type::CLIENT_TCP);
 
     while (loops--) {
 
-       message.test_id = message_id++;
-       message.items = items;
-       message.threshold = threshold;
-
+       message.test_id++;
        p_res = app.send_request(message);
 
        if (p_res != NULL) {
@@ -34,18 +34,20 @@ void send_request_test() {
 void send_request_registration() {
     
     int loops = 3;
-    unsigned int test_id = 0;
-    unsigned int network_id = 6555;
     message_registration_t message;
     request_result_t* p_res;
+
+    /**
+     * initialize request
+     */
+    message.message_id = 0;
+    message.network_id = 6543;
 
     client_app<message_registration_t> app(client_type::CLIENT_TCP);
 
     while (loops--) {
 
-       message.message_id = test_id++;
-       message.network_id = network_id;
-
+       message.message_id++;
        p_res = app.send_request(message);
 
        if (p_res != NULL) {
