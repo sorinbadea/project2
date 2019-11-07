@@ -31,7 +31,9 @@ void server::server_setup() {
 }
 
 server::~server() {
+    int one=1;
     std::cout << "socket destroyed" << std::endl;
+    setsockopt(p_sockfd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int));
     close(p_sockfd);
 }
 

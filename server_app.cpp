@@ -26,17 +26,17 @@ void server_app::start (){
     int fd_l;
     int iterations = 99;
 
-    /**
-     * thread handling a request
-     */
-    std::thread thread_l(&server_app::thread_handle_request, this, iterations);
-	
     try {
-        p_srv->server_setup();
-        p_srv->server_listen();
-        p_fd = -1;
+       p_srv->server_setup();
+       p_srv->server_listen();
+       p_fd = -1;
 
-        while (iterations--) {
+       /**
+       * thread handling a request
+       */
+       std::thread thread_l(&server_app::thread_handle_request, this, iterations);
+
+       while (iterations--) {
 
             #ifdef CLS_DEBUG
                 std::cout << "waiting for accept.." << std::endl;
@@ -59,32 +59,34 @@ void server_app::start (){
 	    }
 	    p_handle_request_ready = false;
         }
+        thread_l.join();
     }
     catch(const server_exception& e) {
        std::cout << e.get_message() << std::endl;
     }
-
-    thread_l.join();
 }
 
 void server_app::thread_handle_request(int iterations) {
 
    while (iterations--) {
       {
-         std::cout << "handle request 1.." << std::endl;
+         std::cout << "handle request.." << iterations << std::endl;
          std::unique_lock<std::mutex> lock(p_thread1);
 	 while (p_fd == -1) 
              p_cv_thread1.wait(lock);
       }
-      handle_request request(p_fd, p_srv);
-      request.process_request();
-      p_fd = -1;
       std::unique_lock<std::mutex> lock(p_main_loop);
       p_handle_request_ready = true;
       /**
        * unlock main_loop 
        */
       p_cv_main_loop.notify_one();
+      /**
+       * handle the new request 
+       */
+      handle_request request(p_fd, p_srv);
+      request.process_request();
+      p_fd = -1;
    }
 }
 
