@@ -32,5 +32,6 @@
 *.exe
 *.out
 *.app
-server
-client
+app_server
+app_client
+app_test

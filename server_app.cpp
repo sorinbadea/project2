@@ -48,10 +48,6 @@ void server_app::start (){
 	    /**
 	     * unlock handle request thread */
             p_cv_thread1.notify_one();
-
-	    /**
-	     * wait for the handle_request to finish 
-	     */
 	    {
 	       std::unique_lock<std::mutex> lock(p_main_loop);
                while(p_handle_request_ready == false)
@@ -59,6 +55,7 @@ void server_app::start (){
 	    }
 	    p_handle_request_ready = false;
         }
+
         thread_l.join();
     }
     catch(const server_exception& e) {
@@ -78,7 +75,7 @@ void server_app::thread_handle_request(int iterations) {
       std::unique_lock<std::mutex> lock(p_main_loop);
       p_handle_request_ready = true;
       /**
-       * unlock main_loop 
+       * unlock the main_loop 
        */
       p_cv_main_loop.notify_one();
       /**
@@ -116,23 +113,26 @@ void handle_request::process_request() {
 
         if (p_msg_header_l->message_id == message_ids::TEST) {
 
-            message_test_t* p_msg_test_l = get_message_buffer<message_test_t>();
-            /**
-             * prepare a test worker instance
-     	     */
-            p_worker = std::shared_ptr<test_worker>(new test_worker(*p_msg_test_l));
-            process_reply_result();
-            delete []p_message;
+           message_test_t* p_msg_test_l = get_message_buffer<message_test_t>();
+           /**
+            * prepare a test worker instance
+     	    */
+           p_worker = std::shared_ptr<test_worker>(new test_worker(*p_msg_test_l));
+           process_reply_result();
+           delete []p_message;
        }
        else if (p_msg_header_l->message_id == message_ids::REGISTRATION) {
 
-            message_registration_t* p_msg_registration_l = get_message_buffer<message_registration_t>();
-            /**
-             * prepare a registration worker instance
-             */
-	    p_worker = std::shared_ptr<registration_worker>(new registration_worker(*p_msg_registration_l));
-            process_reply_result();
-            delete []p_message;
+           message_registration_t* p_msg_registration_l = get_message_buffer<message_registration_t>();
+           /**
+            * prepare a registration worker instance
+            */
+	   p_worker = std::shared_ptr<registration_worker>(new registration_worker(*p_msg_registration_l));
+           process_reply_result();
+           delete []p_message;
+       }
+       else {
+           std::cout << "Unknown request!" << std::endl;
        }
        delete []p_header;
     }
