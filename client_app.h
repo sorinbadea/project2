@@ -5,6 +5,8 @@
 #include "client.h"
 #include "messages.h"
 
+template <class T> unsigned char* get_request_buffer();
+
 template <typename T>
 class client_app {
    /**
@@ -22,7 +24,7 @@ class client_app {
    client_type p_cl_type;
 
    /**
-    * udp client instance  
+    * tcp client instance  
     */
    std::shared_ptr<client_tcp> p_cl;
 
@@ -30,16 +32,25 @@ class client_app {
     * prepare a request, TEST, REGISTRATION, etc..
     * @param msg_test - test parameters
     */
-   void prepare_request(const T& request);
+   unsigned char* prepare_request(const T& request);
 
-   request_result_t* p_request_result;
+   /**
+    * result callback
+    * @param request_result_t - request result
+    */
+   void (*p_cb)(const request_result_t&);
+
+   /**
+    * thread reading the server response
+    */
+   void thread_wait_result();
 
 public:
    /**
     * client app constructor
     * @param c_type: tcp or udp client
     */
-   explicit client_app(const client_type c_type);
+   explicit client_app(const client_type c_type, void(*cb)(const request_result_t&));
    client_app(const client_app& ) = delete;
    client_app& operator= (const client_app& ) = delete;
 
@@ -49,7 +60,7 @@ public:
     * @return - NULL in case of I/O errors
     *         - the result of the request
     */
-   request_result_t* send_request(const T& msg_request);
+   unsigned char* send_request(const T& msg_request);
 };
 
 #endif

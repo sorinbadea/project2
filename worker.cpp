@@ -29,7 +29,9 @@ request_result_t registration_worker::process() {
    std::cout << "message id:" << p_msg_registration.message_id
              << " network id:" << p_msg_registration.network_id
              << std::endl;
-
+    /**
+     * response
+     */
     p_result.message_id = p_msg_registration.message_id;
     p_result.res = result::SUCCESS;
     return p_result;

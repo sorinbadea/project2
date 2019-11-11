@@ -1,11 +1,23 @@
 #include <thread>
 #include "client_app.cpp"
 
+/**
+ * client callback
+   this methd is called when the request result is ready
+*/
+void client_callback(const request_result_t& r) {
+   if (r.res == result::SUCCESS) {
+     std::cout << "message id:" << r.message_id << " OK" << std::endl;
+   }
+   else {
+     std::cout << "message id:" << r.message_id << " KO" << std::endl;
+   }
+}
+
 void send_request_test() {
     
     int loops = 3;
     message_test_t message;
-    request_result_t* p_res;
     /**
      * initialize client request
      */
@@ -13,21 +25,11 @@ void send_request_test() {
     message.items = 2;
     message.threshold = 1.66;
 
-    client_app<message_test_t> app(client_type::CLIENT_TCP);
+    client_app<message_test_t> app(client_type::CLIENT_TCP, client_callback);
 
     while (loops--) {
-
        message.test_id++;
-       p_res = app.send_request(message);
-
-       if (p_res != NULL) {
-          if (p_res->res == result::SUCCESS) {
-             std::cout << "message id:" << p_res->message_id << " OK" << std::endl;
-          }
-	  else {
-              std::cout << "message id:" << p_res->message_id << " KO" << std::endl;
-	  }
-       }
+       app.send_request(message);
     }
 }
 
@@ -35,7 +37,6 @@ void send_request_registration() {
     
     int loops = 3;
     message_registration_t message;
-    request_result_t* p_res;
 
     /**
      * initialize request
@@ -43,21 +44,11 @@ void send_request_registration() {
     message.message_id = 0;
     message.network_id = 6543;
 
-    client_app<message_registration_t> app(client_type::CLIENT_TCP);
+    client_app<message_registration_t> app(client_type::CLIENT_TCP, client_callback);
 
     while (loops--) {
-
        message.message_id++;
-       p_res = app.send_request(message);
-
-       if (p_res != NULL) {
-          if (p_res->res == result::SUCCESS) {
-             std::cout << "message id:" << p_res->message_id << " OK" << std::endl;
-          }
-	  else {
-              std::cout << "message id:" << p_res->message_id << " KO" << std::endl;
-	  }
-       }
+       app.send_request(message);
     }
 }
 

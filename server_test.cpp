@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     memcpy(message + sizeof(message_header_t), (unsigned char*)&m_t, sizeof(message_test_t));
 
     handle_request h;
-    h.process_request(message);
+    request_result_t res_l = h.process_request(message);
 
     delete []message;
     

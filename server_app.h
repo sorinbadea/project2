@@ -47,6 +47,8 @@ class server_app {
     */
    int p_fd;
 
+   unsigned char p_message_request[MESSAGE_MAX_SIZE];
+
 public:
 
    server_app(const server_app& ) = delete;
@@ -83,7 +85,6 @@ class handle_request {
     */
    unsigned char* p_header;
    unsigned char* p_message;
-   unsigned char p_message_request[MESSAGE_MAX_SIZE];
 
    /**
     * socket to respond at */
@@ -103,32 +104,35 @@ class handle_request {
    std::shared_ptr<worker> p_worker;
 
    /**
-    * \description
     * reply the result of processing to the client
     */
-   void process_reply_result();
+   request_result_t process_reply_result();
   
    /**
-    * \description
     * generic method to allocate the resource request
     */
    template <typename T>
-   T* get_message_buffer(); 
+   T* get_message_buffer(unsigned char*); 
+
+   /**
+    * indicates whether unitary tests or not
+    */ 
+   bool p_in_test;
 
 public:
     /**
-     * \description
      * handle request constructor
      * @param fd: socket to respond at
      * @param p_server: reference to a server instance, UDP or TCP
      */
     explicit handle_request(int fd, std::shared_ptr<server> p_server);
-
+    handle_request();
     /**
+     * constructors
      */
     handle_request( handle_request& ) = delete;
     handle_request& operator= ( handle_request& ) = delete;
 
-    void process_request();
+    request_result_t process_request(unsigned char*);
 };
 #endif
