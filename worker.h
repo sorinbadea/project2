@@ -5,7 +5,7 @@
 
 class worker {
 public:
-   virtual request_result_t process() = 0;
+   virtual request_result_t process(bool) = 0;
 };
 
 class test_worker : public worker {
@@ -23,7 +23,7 @@ class test_worker : public worker {
 public:
    explicit test_worker(const message_test_t&);
 
-   request_result_t process();
+   request_result_t process(bool);
 };
 
 class registration_worker : public worker {
@@ -41,7 +41,7 @@ class registration_worker : public worker {
 public:
    explicit registration_worker(const message_registration_t&);
 
-   request_result_t process();
+   request_result_t process(bool);
 };
 
 

@@ -4,7 +4,7 @@ test_worker::test_worker(const message_test_t& msg)
        : p_msg_test(msg) {
 }
 
-request_result_t test_worker::process() {
+request_result_t test_worker::process(bool in_test) {
 
    std::cout << "request: TEST" << std::endl;
    std::cout << "Test id:" << p_msg_test.test_id
@@ -23,7 +23,7 @@ registration_worker::registration_worker(const message_registration_t& msg )
        : p_msg_registration(msg) {
 }
 
-request_result_t registration_worker::process() {
+request_result_t registration_worker::process(bool in_test) {
 
    std::cout << "request: REGISTRATION" << std::endl;
    std::cout << "message id:" << p_msg_registration.message_id

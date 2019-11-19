@@ -147,7 +147,7 @@ request_result_t handle_request::process_reply_result() {
 
     assert(p_worker != NULL);
     /** process the request by the worker */
-    request_result_t res_l = p_worker->process();
+    request_result_t res_l = p_worker->process(p_in_test);
     if (!p_in_test) {
        /** reply to client */
        ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));

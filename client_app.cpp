@@ -1,6 +1,5 @@
 #ifndef CLIENT_APP_CPP
 #define CLIENT_APP_CPP
-#include <type_traits>
 #include "client_app.h"
 #include "exception.h"
 #define TIMEOUT 3
@@ -9,32 +8,6 @@
  * receiver buffer 
  */
 char receive_buff[MESSAGE_MAX_SIZE];
-
-/**
- * allocate space for a request: header + message body
- */
-template<class T> unsigned char* get_request_buffer() {
-
-   message_header_t msg_head_l;
-   unsigned char* p_request_l = new unsigned char[sizeof(message_header_t) + sizeof(T)];
-
-   assert(p_request_l);
-   if (std::is_same<T, message_test_t>::value) {
-       msg_head_l.message_id = message_ids::TEST;
-   }
-   else if (std::is_same<T, message_registration_t>::value) {
-       msg_head_l.message_id = message_ids::REGISTRATION;
-   }
-   else {
-       assert(0);
-   }
-   msg_head_l.message_size = sizeof(T);
-   memcpy((void*)p_request_l, (void*)&msg_head_l, sizeof(message_header_t));
-   return p_request_l;
-}
-
-template unsigned char* get_request_buffer<message_test_t>();
-template unsigned char* get_request_buffer<message_registration_t>();
 
 /**
  * client app class
@@ -90,13 +63,16 @@ template <typename T> unsigned char* client_app<T>::send_request(const T& msg_re
 
 template <typename T> void client_app<T>::thread_wait_result() {
 
-   request_result_t *p_request_result;
+   request_result_t *p_result_ok;
    /**
     * read the result 
     */
    if (p_cl->read_message(&receive_buff[0], TIMEOUT) > 0) {
-      p_request_result = reinterpret_cast<request_result_t*>(&receive_buff[0]);
-      p_cb(*p_request_result);
+      p_result_ok = reinterpret_cast<request_result_t*>(&receive_buff[0]);
+      p_cb(*p_result_ok);
+   }
+   else {
+      p_cb({0xFFFFFFFF,result::ERROR});
    }
 }
 #endif

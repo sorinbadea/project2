@@ -2,6 +2,7 @@
 #define CLIENT_APP_H
 #include <assert.h>
 #include <memory>
+#include <thread>
 #include "client.h"
 #include "messages.h"
 
