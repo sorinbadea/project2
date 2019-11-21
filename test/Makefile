@@ -1,9 +1,9 @@
 CC=g++ -std=c++11
-CFLAGS=-c -I. -I../
+CFLAGS=-c -I. -I../ -DU_TEST
 CPPFLAGS += -I. -I../
 LDFLAGS= -pthread -lstdc++
 
-SOURCES_TEST= $(addprefix ../, exception_srv.cpp server.cpp server_app.cpp utils.cpp) mock.cpp server_test.cpp
+SOURCES_TEST= $(addprefix ../, exception_srv.cpp server_app.cpp utils.cpp) mock.cpp server_test.cpp
 OBJECTS_TEST=$(SOURCES_TEST:.cpp=.o)
 
 EXE_TEST=app_test

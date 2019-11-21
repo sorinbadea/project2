@@ -1,6 +1,20 @@
 #ifndef SERVER_APP_H
 #define SERVER_APP_H
+
+#ifndef U_TEST
+/** non TU compilation */
 #include "server.h"
+#else
+/** TU compilation */
+#include <iostream>
+#include <memory>
+#include <assert.h>
+#include <string.h>
+#include "test/mock.h"
+#endif
+
+#ifndef U_TEST
+/** non TU compilation */
 #include "worker.h"
 #include "messages.h"
 #include "exception.h"
@@ -10,12 +24,13 @@
 
 /**
  * forward declarations 
-*/
+ */
 class server;
 class server_tcp;
 class server_udp;
 
 /**
+ * class not necessary in case of TU runing
  * server application impl. using the server class services
  */ 
 class server_app {
@@ -74,6 +89,7 @@ public:
     **/ 
    void thread_handle_request(int);
 };
+#endif
 
 /**
  * class handling request, TEST, REGISTRATION,..
@@ -114,11 +130,6 @@ class handle_request {
    template <typename T>
    T* get_message_buffer(unsigned char*); 
 
-   /**
-    * indicates whether unitary tests or not
-    */ 
-   bool p_in_test;
-
 public:
     /**
      * handle request constructor
@@ -126,10 +137,12 @@ public:
      * @param p_server: reference to a server instance, UDP or TCP
      */
     explicit handle_request(int fd, std::shared_ptr<server> p_server);
-    handle_request();
+
     /**
-     * constructors
+     * constructor used by the TU
      */
+    handle_request(std::shared_ptr<server>);
+
     handle_request( handle_request& ) = delete;
     handle_request& operator= ( handle_request& ) = delete;
 

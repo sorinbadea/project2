@@ -1,6 +1,10 @@
 #include "server_app.h"
 
 /**
+ * this class shall be ignored in case of TU compilation
+ */
+#ifndef U_TEST
+/**
  * server_app impl.
  */
 server_app::server_app ( const server_type s_type, 
@@ -38,9 +42,7 @@ void server_app::start (){
 
        while (iterations--) {
 
-            #ifdef CLS_DEBUG
-                std::cout << "waiting for accept.." << std::endl;
-            #endif
+            std::cout << "waiting for accept.." << std::endl;
 	    {
                 p_fd = p_srv->server_wait();
 	        std::unique_lock<std::mutex> lock(p_thread1);
@@ -91,6 +93,7 @@ void server_app::thread_handle_request(int iterations) {
       p_fd = -1;
    }
 }
+#endif
 
 /**
  * handle request impl.
@@ -98,10 +101,12 @@ void server_app::thread_handle_request(int iterations) {
 handle_request::handle_request (int fd, std::shared_ptr<server> p_server) : p_fd(fd), p_srv(p_server) {
     assert(p_fd > 0);
     assert(p_server != NULL);
-    p_in_test = false;
 }
-handle_request::handle_request() {
-    p_in_test = true;
+
+handle_request::handle_request(std::shared_ptr<server> p_server) : p_srv(p_server) {
+    /**
+     * this constructor is called in case of TU mocking
+     */
 }
 
 request_result_t handle_request::process_request(unsigned char* p_request) {
@@ -147,15 +152,13 @@ request_result_t handle_request::process_reply_result() {
 
     assert(p_worker != NULL);
     /** process the request by the worker */
-    request_result_t res_l = p_worker->process(p_in_test);
-    if (!p_in_test) {
-       /** reply to client */
-       ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));
-       std::cout << "server " << written_l << " bytes replied.." << std::endl;
+    request_result_t res_l = p_worker->process();
+    /** reply to client */
+    ssize_t written_l = p_srv->cls_write(p_fd, (void*)&res_l, sizeof(request_result_t));
+    std::cout << "server " << written_l << " bytes replied.." << std::endl;
 
-       /** free file descriptor */
-       p_srv->fd_close(p_fd);
-    }
+    /** free file descriptor */
+    p_srv->fd_close(p_fd);
     return res_l;
 }
 
