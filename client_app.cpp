@@ -50,13 +50,15 @@ template <typename T> unsigned char* client_app<T>::send_request(const T& msg_re
 	* send request
 	*/
        if (p_cl->send_message(this->p_message, this->p_message_length) >0) {
-          std::thread thread_l(&client_app::thread_wait_result, this);
-	  thread_l.join();
+          thread_p = std::thread(&client_app::thread_wait_result, this);
        }
    }
    catch (const client_exception& e) {
        std::cout << e.get_message() << std::endl;
        p_cb({0xFFFFFFFF,result::ERROR});
+   }
+   if (thread_p.joinable()) {
+     thread_p.join();
    }
    delete [] p_message;
 }

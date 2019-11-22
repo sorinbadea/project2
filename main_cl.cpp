@@ -17,38 +17,25 @@ void client_callback(const request_result_t& r) {
 void send_request_test() {
     
     int loops = 3;
-    message_test_t message;
-    /**
-     * initialize client request
-     */
-    message.test_id = 0;
-    message.items = 2;
-    message.threshold = 1.66;
 
+    /** instanciate a client app for a \"test\" message */
     client_app<message_test_t> app(client_type::CLIENT_TCP, client_callback);
 
     while (loops--) {
-       message.test_id++;
-       app.send_request(message);
+       /** send the request */
+       app.send_request({1,2,1.66});
     }
 }
 
 void send_request_registration() {
     
     int loops = 3;
-    message_registration_t message;
-
-    /**
-     * initialize request
-     */
-    message.message_id = 0;
-    message.network_id = 6543;
-
+    /** instanciate a client app for a \"registration\" message */
     client_app<message_registration_t> app(client_type::CLIENT_TCP, client_callback);
-
+    
     while (loops--) {
-       message.message_id++;
-       app.send_request(message);
+       /** send the request */
+       app.send_request({2,6453});
     }
 }
 

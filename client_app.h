@@ -10,24 +10,13 @@ template <class T> unsigned char* get_request_buffer();
 
 template <typename T>
 class client_app {
-   /**
-    * request buffer
-    */
-   unsigned char* p_message;
-   /**
-    * request length
-    */
-   unsigned int p_message_length;
+   unsigned char* p_message;         /** request buffer */
+   unsigned int p_message_length;    /** request length */
+   client_type p_cl_type;            /** client type, udp or tcp */
+   std::shared_ptr<client_tcp> p_cl; /** tcp client instance */
 
-   /**
-    * stores the client type, udp or tcp
-    */
-   client_type p_cl_type;
-
-   /**
-    * tcp client instance  
-    */
-   std::shared_ptr<client_tcp> p_cl;
+   void thread_wait_result();        /**  thread waiting the server response */
+   std::thread thread_p;
 
    /**
     * prepare a request, TEST, REGISTRATION, etc..
@@ -40,11 +29,6 @@ class client_app {
     * @param request_result_t - request result
     */
    void (*p_cb)(const request_result_t&);
-
-   /**
-    * thread reading the server response
-    */
-   void thread_wait_result();
 
 public:
    /**

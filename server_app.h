@@ -62,6 +62,11 @@ class server_app {
     */
    int p_fd;
 
+   /**
+    * thread handling a request 
+    */
+   std::thread thread_p;
+
    unsigned char p_message_request[MESSAGE_MAX_SIZE];
 
 public:

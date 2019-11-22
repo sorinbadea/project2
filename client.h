@@ -45,7 +45,6 @@ public:
     * @param: timeout: timeout in seconds
     */
    size_t read_message (char* buffer, unsigned int timeout);
-
 };
 
 #endif

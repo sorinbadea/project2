@@ -38,7 +38,7 @@ void server_app::start (){
        /**
        * thread handling a request
        */
-       std::thread thread_l(&server_app::thread_handle_request, this, iterations);
+       thread_p = std::thread(&server_app::thread_handle_request, this, iterations);
 
        while (iterations--) {
 
@@ -57,10 +57,12 @@ void server_app::start (){
 	    }
 	    p_handle_request_ready = false;
         }
-        thread_l.join();
     }
     catch(const server_exception& e) {
        std::cout << e.get_message() << std::endl;
+    }
+    if (thread_p.joinable()) {
+       thread_p.join();
     }
 }
 
