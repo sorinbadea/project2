@@ -43,6 +43,4 @@ public:
 
    request_result_t process();
 };
-
-
 #endif

@@ -88,7 +88,7 @@ class server_tcp : public server {
 
 public:
 
-   server_tcp(const unsigned int, const unsigned int);
+   explicit server_tcp(const unsigned int, const unsigned int);
    ~server_tcp();
 
    /**

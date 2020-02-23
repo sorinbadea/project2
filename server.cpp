@@ -117,7 +117,7 @@ void server_udp::server_listen() {
 int server_udp::server_wait() {
 
     size_t bytes_read_l = 0;
-    int rv_l;
+    int rv_l; /* return value, local */
 
     FD_ZERO(&p_set);
     FD_SET(p_sockfd, &p_set); // add the file descriptor to the set

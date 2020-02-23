@@ -95,7 +95,7 @@ void server_app::thread_handle_request(int iterations) {
       p_fd = -1;
    }
 }
-#endif
+#endif  /* production CODE */
 
 /**
  * handle request impl.
