@@ -45,7 +45,7 @@ public:
     * @return - NULL in case of I/O errors
     *         - the result of the request
     */
-   unsigned char* send_request(const T& msg_request);
+   void send_request(const T& msg_request);
 };
 
 #endif

@@ -17,7 +17,8 @@ client_app<T>::client_app(client_type c_type, void (*cb)(const request_result_t&
 	: p_cl_type(c_type), p_cb(cb) {
 }
 
-template<typename T> unsigned char* client_app<T>::prepare_request(const T& request) {
+template<typename T> 
+unsigned char* client_app<T>::prepare_request(const T& request) {
  
     /**
      * allocate space for request
@@ -33,7 +34,8 @@ template<typename T> unsigned char* client_app<T>::prepare_request(const T& requ
     return p_message;
 }
 
-template <typename T> unsigned char* client_app<T>::send_request(const T& msg_request) {
+template <typename T> 
+void client_app<T>::send_request(const T& msg_request) {
 
    p_message = prepare_request(msg_request);
    assert(p_message != NULL);
@@ -63,7 +65,8 @@ template <typename T> unsigned char* client_app<T>::send_request(const T& msg_re
    delete [] p_message;
 }
 
-template <typename T> void client_app<T>::thread_wait_result() {
+template <typename T> 
+void client_app<T>::thread_wait_result() {
 
    request_result_t *p_result_ok;
    /**
